@@ -1,9 +1,16 @@
 services:
-  postgres:
-    image: 'postgres:latest'
+  postgres-test:
+    image: postgres:18-alpine
+    container_name: postgres_test_db
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      - POSTGRES_USER=spring
+      - POSTGRES_PASSWORD=spring
+      - POSTGRES_DB=study_db
     ports:
-      - '5432'
+      - "5432:5432"
+    command: [ "postgres", "-c", "fsync=off", "-c", "full_page_writes=off" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U spring -d study_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
