@@ -1,0 +1,49 @@
+scalar DateTime
+
+type Student {
+    id: ID!
+    name: String!
+    email: String!
+    createdAt: DateTime!
+    enrollments: [Enrollment!]!
+}
+
+type Course {
+    id: ID!
+    title: String!
+    description: String
+    level: String
+    enrollments: [Enrollment!]!
+}
+
+type Enrollment {
+    id: ID!
+    progress: Int!
+    enrolledAt: DateTime!
+    student: Student!
+    course: Course!
+}
+
+type Query {
+    findAllStudents: [Student!]!
+    findStudentById(id:ID!): Student
+
+    findAllCourses: [Course!]!
+    findCourseById(id: ID!): Course
+
+    findAllEnrollments: [Enrollment!]!
+    findEnrollmentById(id: ID!): Enrollment
+}
+
+type Mutation {
+    createStudent(name: String!, email: String!): Student!
+    updateStudent(id: ID!, name: String, email: String): Student!
+    deleteStudent(id: ID!): Boolean
+
+    createCourse(title: String!, description: String, level: String): Course!
+    updateCourse(id: ID!, title: String, description: String, level: String): Course!
+    deleteCourse(id: ID!): Boolean
+
+    createEnrollment(studentId: ID!, courseId: ID!): Enrollment!
+    updateEnrollmentProgress(id: ID!, progress: Int!): Enrollment!
+}
