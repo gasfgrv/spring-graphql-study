@@ -18,10 +18,12 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "courses")
 @Getter
+@Setter
 @NoArgsConstructor
 public class CourseEntity {
 

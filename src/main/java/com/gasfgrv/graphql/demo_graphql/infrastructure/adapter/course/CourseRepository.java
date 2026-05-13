@@ -27,10 +27,8 @@ public class CourseRepository implements CourseRepositoryPort {
 
     @Override
     public Optional<Course> findById(long id) {
-        Course course = jpaRepository.findById(id)
-                .map(mapper::toDomain)
-                .orElse(null);
-        return Optional.of(course);
+        return jpaRepository.findById(id)
+                .map(mapper::toDomain);
     }
 
     @Override
