@@ -27,10 +27,8 @@ public class EnrollmentRepository implements EnrollmentRepositoryPort {
 
     @Override
     public Optional<Enrollment> findById(long id) {
-        Enrollment enrollment = jpaRepository.findById(id)
-                .map(mapper::toDomain)
-                .orElse(null);
-        return Optional.of(enrollment);
+        return jpaRepository.findById(id)
+                .map(mapper::toDomain);
     }
 
     @Override
