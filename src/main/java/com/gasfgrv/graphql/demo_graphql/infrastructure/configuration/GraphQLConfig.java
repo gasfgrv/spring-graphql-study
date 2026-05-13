@@ -7,7 +7,6 @@ import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import com.gasfgrv.graphql.demo_graphql.infrastructure.graphql.LocalDateTimeCoercing;
 
 import graphql.schema.GraphQLScalarType;
-import graphql.schema.idl.RuntimeWiring;
 
 @Configuration
 public class GraphQLConfig {

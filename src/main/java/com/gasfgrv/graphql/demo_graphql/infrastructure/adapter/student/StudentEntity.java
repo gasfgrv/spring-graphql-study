@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gasfgrv.graphql.demo_graphql.domain.model.Enrollment;
 import com.gasfgrv.graphql.demo_graphql.infrastructure.adapter.enrollment.EnrollmentEntity;
 
 import jakarta.persistence.CascadeType;
