@@ -5,11 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Student {
 
     private Long id;
@@ -34,7 +38,7 @@ public class Student {
     }
 
     public Student validateEmail(String email) {
-        Objects.requireNonNull("email is mandatory");
+        Objects.requireNonNull(email, "email is mandatory");
 
         if (!email.contains("@")) {
             throw new IllegalArgumentException("Email inválido");
@@ -44,7 +48,7 @@ public class Student {
             throw new IllegalArgumentException("email length is greater than 150");
         }
 
-        if (name.isBlank()) {
+        if (email.isBlank()) {
             throw new IllegalArgumentException("email is blank");
         }
 

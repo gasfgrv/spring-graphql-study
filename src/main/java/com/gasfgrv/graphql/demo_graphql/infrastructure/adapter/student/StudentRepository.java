@@ -27,17 +27,20 @@ public class StudentRepository implements StudentRepositoryPort {
 
     @Override
     public Optional<Student> findById(long id) {
-        Student student = jpaRepository
+        return jpaRepository
                 .findById(id)
-                .map(mapper::toDomain)
-                .orElse(null);
-        return Optional.of(student);
+                .map(mapper::toDomain);
     }
 
     @Override
     public Student save(Student student) {
-        StudentEntity save = jpaRepository.save(mapper.toEntity(student));
-        return mapper.toDomain(save);
+        StudentEntity entity = mapper.toEntity(student);
+        System.out.println(entity);
+        StudentEntity save = jpaRepository.save(entity);
+        System.out.println(save);
+        Student domain = mapper.toDomain(save);
+        System.out.println(domain);
+        return domain;
     }
 
     @Override

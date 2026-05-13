@@ -14,8 +14,6 @@ public interface StudentMapper {
     @Mapping(target = "enrollments", source = "enrollment")
     StudentEntity toEntity(Student student);
 
-    @Mapping(target = "validateName", ignore = true)
-    @Mapping(target = "validateEmail", ignore = true)
     @Mapping(target = "enrollment", source = "enrollments")
     Student toDomain(StudentEntity entity);
 
