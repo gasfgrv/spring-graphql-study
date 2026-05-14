@@ -34,8 +34,8 @@ public class CourseEntity {
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String text;
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50)

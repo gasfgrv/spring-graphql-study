@@ -20,7 +20,7 @@ public class Student {
     private String name;
     private String email;
     private LocalDateTime createdAt;
-    private List<Enrollment> enrollment;
+    private List<Enrollment> enrollments;
 
     public Student validateName(String name) {
         Objects.requireNonNull(name, "name is mandatory");
@@ -58,7 +58,7 @@ public class Student {
 
     public Student createStudent() {
         this.createdAt = LocalDateTime.now();
-        this.enrollment = new ArrayList<>();
+        this.enrollments = new ArrayList<>();
         return this;
     }
 

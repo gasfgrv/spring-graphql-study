@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public final class Enrollment {
-    private long id;
+public class Enrollment {
+    private Long id;
     private Student student;
     private Course course;
     private int progress;

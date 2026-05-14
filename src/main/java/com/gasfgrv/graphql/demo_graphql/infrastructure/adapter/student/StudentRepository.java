@@ -34,13 +34,8 @@ public class StudentRepository implements StudentRepositoryPort {
 
     @Override
     public Student save(Student student) {
-        StudentEntity entity = mapper.toEntity(student);
-        System.out.println(entity);
-        StudentEntity save = jpaRepository.save(entity);
-        System.out.println(save);
-        Student domain = mapper.toDomain(save);
-        System.out.println(domain);
-        return domain;
+        StudentEntity save = jpaRepository.save(mapper.toEntity(student));
+        return mapper.toDomain(save);
     }
 
     @Override

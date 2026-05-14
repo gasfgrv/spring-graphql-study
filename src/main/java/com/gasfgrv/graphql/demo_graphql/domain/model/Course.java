@@ -13,11 +13,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public final class Course {
+public class Course {
 
     private Long id;
     private String title;
-    private String text;
+    private String description;
     private Level level;
     private List<Enrollment> enrollments;
 
@@ -41,7 +41,7 @@ public final class Course {
             throw new IllegalArgumentException("Description length is greater than 200");
         }
 
-        this.text = description;
+        this.description = description;
         return this;
     }
 
