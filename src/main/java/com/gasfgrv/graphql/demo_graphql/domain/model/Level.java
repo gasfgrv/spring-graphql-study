@@ -16,7 +16,8 @@ public enum Level {
     private final String level;
 
     public static Level getByValueOf(String level) {
-        return Arrays.stream(Level.values()).filter(lvl -> level.equals(lvl.level))
+        return Arrays.stream(Level.values())
+                .filter(lvl -> level.equals(lvl.level))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Invalid level"));
     }
