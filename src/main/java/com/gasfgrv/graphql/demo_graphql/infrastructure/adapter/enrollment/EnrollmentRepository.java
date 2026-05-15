@@ -32,6 +32,22 @@ public class EnrollmentRepository implements EnrollmentRepositoryPort {
     }
 
     @Override
+    public List<Enrollment> findAllByStudentIds(List<Long> studentIds) {
+        return jpaRepository.findAllByStudentIdIn(studentIds)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Enrollment> findAllByCourseIds(List<Long> courseIds) {
+        return jpaRepository.findAllByCourseIdIn(courseIds)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Enrollment save(Enrollment enrollment) {
         EnrollmentEntity save = jpaRepository.save(mapper.toEntity(enrollment));
         return mapper.toDomain(save);

@@ -27,6 +27,11 @@ public class StudentUsecase implements StudentUsecasePort {
     }
 
     @Override
+    public List<Student> findAllStudentsByIds(List<Long> ids) {
+        return repository.findAllByIds(ids);
+    }
+
+    @Override
     public Student createStudent(String name, String email) {
         Student student = new Student()
                 .validateName(name)

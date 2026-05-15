@@ -32,6 +32,14 @@ public class CourseRepository implements CourseRepositoryPort {
     }
 
     @Override
+    public List<Course> findAllByIds(List<Long> ids) {
+        return jpaRepository.findAllById(ids)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Course save(Course course) {
         CourseEntity save = jpaRepository.save(mapper.toEntity(course));
         return mapper.toDomain(save);

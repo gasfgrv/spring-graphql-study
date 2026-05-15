@@ -33,6 +33,14 @@ public class StudentRepository implements StudentRepositoryPort {
     }
 
     @Override
+    public List<Student> findAllByIds(List<Long> ids) {
+        return jpaRepository.findAllById(ids)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Student save(Student student) {
         StudentEntity save = jpaRepository.save(mapper.toEntity(student));
         return mapper.toDomain(save);

@@ -11,6 +11,10 @@ public interface EnrollmentUsecasePort {
 
     Optional<Enrollment> findEnrollmentById(long id);
 
+    List<Enrollment> findAllEnrollmentsByStudentIds(List<Long> studentIds);
+
+    List<Enrollment> findAllEnrollmentsByCourseIds(List<Long> courseIds);
+
     Enrollment createEnrollment(long studentId, long courseId);
 
     Enrollment updateEnrollment(long id, int progress);

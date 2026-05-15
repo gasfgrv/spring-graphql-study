@@ -11,6 +11,8 @@ public interface CourseUsecasePort {
 
     Optional<Course> findCourseById(long id);
 
+    List<Course> findAllCoursesByIds(List<Long> ids);
+
     Course createCourse(String title, String description, String level);
 
     Course updateCourse(long id, String title, String description, String level);

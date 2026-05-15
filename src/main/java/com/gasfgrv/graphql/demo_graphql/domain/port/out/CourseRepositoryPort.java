@@ -11,6 +11,8 @@ public interface CourseRepositoryPort {
 
     Optional<Course> findById(long id);
 
+    List<Course> findAllByIds(List<Long> ids);
+
     Course save(Course course);
 
     boolean deleteById(long id);

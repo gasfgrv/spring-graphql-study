@@ -2,7 +2,5 @@
 
 Ajustes necessários:
 
-- Queries N + 1
-- DTOs
 - Exception Handling
 - testes

@@ -11,6 +11,8 @@ public interface StudentRepositoryPort {
 
     Optional<Student> findById(long id);
 
+    List<Student> findAllByIds(List<Long> ids);
+
     Student save(Student student);
 
     boolean deleteById(long id);

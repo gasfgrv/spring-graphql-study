@@ -11,6 +11,8 @@ public interface StudentUsecasePort {
 
     Optional<Student> findStudentById(long id);
 
+    List<Student> findAllStudentsByIds(List<Long> ids);
+
     Student createStudent(String name, String email);
 
     Student updateStudent(long id, String name, String email);

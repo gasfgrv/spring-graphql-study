@@ -26,6 +26,11 @@ public class CourseUsecase implements CourseUsecasePort {
     }
 
     @Override
+    public List<Course> findAllCoursesByIds(List<Long> ids) {
+        return repository.findAllByIds(ids);
+    }
+
+    @Override
     public Course createCourse(String title, String description, String level) {
         Course course = new Course()
                 .validateTitle(title)

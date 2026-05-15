@@ -33,6 +33,16 @@ public class EnrollmentUsecase implements EnrollmentUsecasePort {
     }
 
     @Override
+    public List<Enrollment> findAllEnrollmentsByStudentIds(List<Long> studentIds) {
+        return enrollmentRepository.findAllByStudentIds(studentIds);
+    }
+
+    @Override
+    public List<Enrollment> findAllEnrollmentsByCourseIds(List<Long> courseIds) {
+        return enrollmentRepository.findAllByCourseIds(courseIds);
+    }
+
+    @Override
     public Enrollment createEnrollment(long studentId, long courseId) {
         Student student = studentRepository.findById(studentId).orElse(null);
         Course course = courseRepository.findById(courseId).orElse(null);

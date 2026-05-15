@@ -12,8 +12,8 @@ public interface EnrollmentMapper {
 
     EnrollmentEntity toEntity(Enrollment enrollment);
 
-    @Mapping(target = "student.enrollments", ignore = true)
-    @Mapping(target = "course.enrollments", ignore = true)
+    @Mapping(target = "student", expression = "java(entity.getStudent() != null ? com.gasfgrv.graphql.demo_graphql.domain.model.Student.builder().id(entity.getStudent().getId()).build() : null)")
+    @Mapping(target = "course", expression = "java(entity.getCourse() != null ? com.gasfgrv.graphql.demo_graphql.domain.model.Course.builder().id(entity.getCourse().getId()).build() : null)")
     Enrollment toDomain(EnrollmentEntity entity);
 
 }
