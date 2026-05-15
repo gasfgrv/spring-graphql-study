@@ -2,5 +2,4 @@
 
 Ajustes necessários:
 
-- Exception Handling
 - testes
