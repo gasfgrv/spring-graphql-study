@@ -1,12 +1,6 @@
 package com.gasfgrv.graphql.demo_graphql;
 
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.configuration.Configuration;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Import;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -15,7 +9,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.Configuration;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Import;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
