@@ -1,62 +1,231 @@
-# spring-graphql-study (Levantamento)
+# Estudo de Spring Boot com GraphQL
 
-Ajustes necessários:
+Este projeto é um estudo prático de implementação de uma API GraphQL utilizando Spring Boot, seguindo os princípios da **Arquitetura Hexagonal** (Ports and Adapters) e **Domain-Driven Design (DDD)**.
 
-- testes
+## Arquitetura do Projeto
+
+O projeto utiliza a arquitetura hexagonal para garantir o desacoplamento entre a lógica de negócio e as tecnologias externas (Banco de Dados, Interface GraphQL).
+
+```mermaid
+graph TD
+    subgraph "Infrastructure Layer (Adapters)"
+        GraphQL[GraphQL Resolvers]
+        JPA[JPA Repositories]
+        Mappers[MapStruct Mappers]
+    end
+
+    subgraph "Application Layer"
+        UC[Use Cases]
+    end
+
+    subgraph "Domain Layer"
+        P_IN[Input Ports - Interfaces]
+        P_OUT[Output Ports - Interfaces]
+        Models[Domain Models / Entities]
+    end
+
+    GraphQL --> P_IN
+    P_IN --> UC
+    UC --> Models
+    UC --> P_OUT
+    P_OUT --> JPA
+    JPA -.-> Mappers
+```
+
+### Camadas
+
+- **Domain:** Contém as entidades de negócio, regras de validação e as interfaces (Ports) que definem como o mundo externo interage com o core e vice-versa.
+- **Application:** Implementa os casos de uso (Use Cases) que orquestram a lógica de negócio.
+- **Infrastructure:** Implementa os adaptadores para tecnologias específicas, como o GraphQL para entrada de dados e JPA para persistência.
 
 ---
 
-✦ Para garantir a qualidade e a robustez da sua aplicação Spring GraphQL seguindo a arquitetura hexagonal que você implementou, aqui estão as
-  classes que você deve testar e os tipos de testes recomendados para cada uma:
+## Modelo de Dados (ER)
 
-  1. Camada de Aplicação (aplication.usecase)
-  Tipo de Teste: Unitário (utilizando JUnit 5 e Mockito).
+O domínio do sistema foca em Estudantes, Cursos e Matrículas (Enrollments).
 
-   * Classes: CourseUsecase, StudentUsecase, EnrollmentUsecase.
-   * O que testar:
-       * Regras de negócio e lógica de decisão.
-       * Se as chamadas aos repositórios (Portas de Saída) estão ocorrendo com os parâmetros corretos.
-       * Se as exceções customizadas (ex: CourseNotFoundException) são lançadas em cenários de erro.
-       * Caminhos felizes e fluxos de erro.
+```mermaid
+erDiagram
+    STUDENT ||--o{ ENROLLMENT : possui
+    COURSE ||--o{ ENROLLMENT : possui
+    
+    STUDENT {
+        long id PK
+        string name
+        string email
+        datetime createdAt
+    }
+    
+    COURSE {
+        long id PK
+        string title
+        string description
+        string level
+    }
+    
+    ENROLLMENT {
+        long id PK
+        long studentId FK
+        long courseId FK
+        int progress
+        datetime enrolledAt
+    }
+```
 
-  2. Camada de Infraestrutura - Resolvers (infrastructure.resolver)
-  Tipo de Teste: Integração / Slice Test (utilizando @GraphQlTest).
-  
-   * Classes: CourseResolver, StudentResolver, EnrollmentResolver.
-   * O que testar:
-       * Mapeamento das @QueryMapping, @MutationMapping e @BatchMapping.
-       * Validação dos argumentos recebidos via @Argument.
-       * Garantir que o retorno do Resolver corresponde ao esperado pelo schema.graphqls.
-       * Testar o GlobalExceptionHandler enviando requisições que forcem erros e verificando se o formato do erro GraphQL está correto.
+---
 
-  3. Camada de Infraestrutura - Adaptadores (infrastructure.adapter)
-  Tipo de Teste: Integração (utilizando @DataJpaTest e, idealmente, Testcontainers).
-  
-   * Classes: CourseRepository, StudentRepository, EnrollmentRepository.
-   * O que testar:
-       * A integração real com o banco de dados.
-       * Persistência de entidades e recuperação correta.
-       * Se o Mapper está convertendo corretamente de Entidade para Objeto de Domínio e vice-versa durante as operações de salvamento e busca.
+## Fluxo de Execução da API
 
-  4. Camada de Infraestrutura - Mappers (infrastructure.adapter.*.Mapper)
-  Tipo de Teste: Unitário.
-  
-   * Classes: CourseMapper, StudentMapper, EnrollmentMapper.
-   * O que testar:
-       * Garantir que todos os campos estão sendo copiados corretamente entre as camadas (Domain ↔ Entity).
-       * Casos de campos nulos ou conversões de tipos específicos.
+Abaixo, um diagrama de sequência exemplificando o fluxo de criação de uma matrícula:
 
-  5. Domínio - Modelos (domain.model)
-  Tipo de Teste: Unitário.
-  
-   * Classes: Course, Student, Enrollment.
-   * O que testar:
-       * Como vi no seu CourseUsecase que você usa métodos como .validateTitle(), esses comportamentos devem ser testados aqui.
-       * Validações internas de estado do objeto e lógica rica de domínio.
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Resolver as EnrollmentResolver
+    participant PortIn as EnrollmentUsecasePort
+    participant UseCase as EnrollmentUsecase
+    participant PortOut as EnrollmentRepositoryPort
+    participant DB as Database
 
-  6. Componentes de Suporte (infrastructure.graphql)
-  Tipo de Teste: Unitário.
-  
-   * Classe: LocalDateTimeCoercing.
-   * O que testar:
-       * A lógica de serialização (Java -> String/ISO) e desserialização (String -> Java) de datas
+    Client->>Resolver: Mutation: createEnrollment(studentId, courseId)
+    Resolver->>PortIn: execute(studentId, courseId)
+    PortIn->>UseCase: createEnrollment(...)
+    UseCase->>PortOut: findStudentById(studentId)
+    PortOut-->>UseCase: Student Object
+    UseCase->>PortOut: findCourseById(courseId)
+    PortOut-->>UseCase: Course Object
+    UseCase->>UseCase: Validate & Create Enrollment
+    UseCase->>PortOut: save(Enrollment)
+    PortOut->>DB: INSERT INTO enrollments
+    DB-->>PortOut: Success
+    PortOut-->>UseCase: Saved Enrollment
+    UseCase-->>PortIn: Saved Enrollment
+    PortIn-->>Resolver: Saved Enrollment
+    Resolver-->>Client: GraphQL Response
+```
+
+---
+
+## Tecnologias Utilizadas
+
+- **Java 21**
+- **Spring Boot 4.x** (Spring Framework 6.x)
+- **Spring for GraphQL**
+- **Spring Data JPA**
+- **PostgreSQL**
+- **Flyway** (Migrações de banco de dados)
+- **MapStruct** (Mapeamento de entidades)
+- **Lombok**
+- **Testcontainers** (Testes de integração com banco real)
+- **Docker & Docker Compose**
+
+---
+
+## Como Executar
+
+### Pré-requisitos
+
+- Docker e Docker Compose instalados.
+- JDK 21+.
+
+### Passos
+
+1. **Subir o Banco de Dados:**
+   O projeto utiliza `spring-boot-docker-compose`, então ao iniciar a aplicação, o container do PostgreSQL subirá automaticamente se o Docker estiver rodando. Caso queira subir manualmente:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Executar a Aplicação:**
+
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+3. **Acessar o GraphiQL:**
+   A interface para testes da API estará disponível em:
+   `http://localhost:8080/graphiql`
+
+---
+
+## Exemplos de Uso (GraphQL)
+
+### Criar um novo Estudante
+
+```graphql
+mutation {
+  createStudent(name: "João Silva", email: "joao@email.com") {
+    id
+    name
+    createdAt
+  }
+}
+```
+
+### Criar um Curso
+
+```graphql
+mutation {
+  createCourse(
+    title: "Spring Boot com GraphQL"
+    description: "Aprenda a criar APIs modernas com Spring e GraphQL"
+    level: "Intermediário"
+  ) {
+    id
+    title
+    level
+  }
+}
+```
+
+### Realizar uma Matrícula
+
+```graphql
+mutation {
+  createEnrollment(studentId: 1, courseId: 1) {
+    id
+    progress
+    enrolledAt
+    student {
+      name
+    }
+    course {
+      title
+    }
+  }
+}
+```
+
+### Consultar todos os Estudantes e suas Matrículas
+
+```graphql
+query {
+  findAllStudents {
+    name
+    email
+    enrollments {
+      course {
+        title
+      }
+      progress
+    }
+  }
+}
+```
+
+---
+
+## Detalhes Técnicos
+
+### Custom Scalar: DateTime
+
+O projeto implementa um scalar customizado `DateTime` para lidar com `LocalDateTime` do Java, garantindo a serialização correta no formato ISO-8601.
+
+### Validações de Domínio
+
+As validações de negócio estão localizadas diretamente nos modelos de domínio (`Student`, `Course`, `Enrollment`), garantindo que o estado das entidades seja sempre válido antes de serem persistidas.
+
+### Tratamento de Exceções
+
+Existe um `GlobalExceptionHandler` que captura exceções de domínio e as mapeia para erros amigáveis do GraphQL, utilizando a especificação de erros da linguagem.
