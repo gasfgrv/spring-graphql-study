@@ -58,7 +58,7 @@ public class StudentResolver {
 
     @MutationMapping
     public Student updateStudent(@Argument Long id, @Argument String name, @Argument String email) {
-        return studentUsecase.createStudent(name, email);
+        return studentUsecase.updateStudent(id, name, email);
     }
 
     @MutationMapping
