@@ -69,9 +69,11 @@ public class EnrollmentRepositoryTest {
                 .orElseThrow();
 
         assertThat(foundEnrollment).isNotNull()
-                .extracting(Enrollment::getId, enrollmentStudent -> enrollmentStudent.getStudent().getId(),
+                .extracting(Enrollment::getId,
+                        enrollmentStudent -> enrollmentStudent.getStudent().getId(),
                         enrollmentCourse -> enrollmentCourse.getCourse().getId())
-                .containsExactly(savedEnrollment.getId(), savedEnrollment.getStudent().getId(),
+                .containsExactly(savedEnrollment.getId(),
+                        savedEnrollment.getStudent().getId(),
                         savedEnrollment.getCourse().getId());
     }
 
@@ -131,9 +133,11 @@ public class EnrollmentRepositoryTest {
         Enrollment savedEnrollment = adapter.save(enrollment);
 
         assertThat(savedEnrollment).isNotNull()
-                .extracting(Enrollment::getId, enrollmentStudent -> enrollmentStudent.getStudent().getId(),
+                .extracting(Enrollment::getId,
+                        enrollmentStudent -> enrollmentStudent.getStudent().getId(),
                         enrollmentCourse -> enrollmentCourse.getCourse().getId())
-                .containsExactly(savedEnrollment.getId(), enrollment.getStudent().getId(),
+                .containsExactly(savedEnrollment.getId(),
+                        enrollment.getStudent().getId(),
                         enrollment.getCourse().getId());
     }
 

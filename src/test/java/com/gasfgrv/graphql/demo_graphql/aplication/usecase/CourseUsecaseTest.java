@@ -47,41 +47,45 @@ public class CourseUsecaseTest {
 
     @Test
     public void testFindCourseById() {
+        long courseId = 1L;
         Course course = DataMock.createCourseMock();
 
-        when(repository.findById(1L)).thenReturn(Optional.of(course));
+        when(repository.findById(courseId)).thenReturn(Optional.of(course));
 
-        var result = usecase.findCourseById(1L);
+        Optional<Course> result = usecase.findCourseById(courseId);
 
         assertThat(result).isPresent()
                 .contains(course);
 
-        verify(repository).findById(1L);
+        verify(repository).findById(courseId);
     }
 
     @Test
     public void testFindCourseByIdNotFound() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+        long courseId = 1L;
 
-        assertThatThrownBy(() -> usecase.findCourseById(1L))
+        when(repository.findById(courseId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> usecase.findCourseById(courseId))
                 .isInstanceOf(CourseNotFoundException.class);
 
-        verify(repository).findById(1L);
+        verify(repository).findById(courseId);
     }
 
     @Test
     public void testFindAllCoursesByIds() {
+        long courseId = 1L;
         Course course = DataMock.createCourseMock();
 
-        when(repository.findAllByIds(List.of(1L))).thenReturn(List.of(course));
+        when(repository.findAllByIds(List.of(courseId))).thenReturn(List.of(course));
 
-        List<Course> courses = usecase.findAllCoursesByIds(List.of(1L));
+        List<Course> courses = usecase.findAllCoursesByIds(List.of(courseId));
 
         assertThat(courses).isNotNull()
                 .hasSize(1)
                 .contains(course);
 
-        verify(repository).findAllByIds(List.of(1L));
+        verify(repository).findAllByIds(List.of(courseId));
     }
 
     @Test
@@ -90,7 +94,9 @@ public class CourseUsecaseTest {
 
         when(repository.save(any(Course.class))).thenReturn(course);
 
-        Course created = usecase.createCourse(course.getTitle(), course.getDescription(), course.getLevel().getLevel());
+        Course created = usecase.createCourse(course.getTitle(),
+                course.getDescription(),
+                course.getLevel().getLevel());
 
         assertThat(created).isNotNull()
                 .isEqualTo(course);
@@ -100,41 +106,53 @@ public class CourseUsecaseTest {
 
     @Test
     public void testUpdateCourse() {
-        Course course = DataMock.createCourseMock();
-        Course updatedCourse = course.updateData("New Title", "New Description", "Avançado");
+        long courseId = 1L;
+        String newTitle = "New Title";
+        String newDescription = "New Description";
+        String level = "Avançado";
 
-        when(repository.findById(1L)).thenReturn(Optional.of(course));
+        Course course = DataMock.createCourseMock();
+        Course updatedCourse = course.updateData(newTitle, newDescription, level);
+
+        when(repository.findById(courseId)).thenReturn(Optional.of(course));
         when(repository.save(any(Course.class))).thenReturn(updatedCourse);
 
-        Course result = usecase.updateCourse(1L, "New Title", "New Description", "Avançado");
-
+        Course result = usecase.updateCourse(courseId, newTitle, newDescription, level);
         assertThat(result).isNotNull()
                 .isEqualTo(updatedCourse);
 
-        verify(repository).findById(1L);
+        verify(repository).findById(courseId);
         verify(repository).save(any(Course.class));
     }
 
     @Test
     public void testUpdateCourseNotFound() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+        long courseId = 1L;
+        String newTitle = "New Title";
+        String newDescription = "New Description";
+        String level = "Avançado";
 
-        assertThatThrownBy(() -> usecase.updateCourse(1L, "New Title", "New Description", "Avançado"))
-                .isInstanceOf(CourseNotFoundException.class);
+        when(repository.findById(courseId)).thenReturn(Optional.empty());
 
-        verify(repository).findById(1L);
+        assertThatThrownBy(() -> usecase.updateCourse(courseId, newTitle, newDescription, level))
+                .isInstanceOf(CourseNotFoundException.class)
+                .hasMessageContaining("Course not found");
+
+        verify(repository).findById(courseId);
         verify(repository, never()).save(any(Course.class));
     }
 
     @Test
     public void testDeleteCourse() {
-        when(repository.deleteById(1L)).thenReturn(true);
+        long courseId = 1L;
 
-        boolean deleted = usecase.deleteCourse(1L);
+        when(repository.deleteById(courseId)).thenReturn(true);
+
+        boolean deleted = usecase.deleteCourse(courseId);
 
         assertThat(deleted).isTrue();
 
-        verify(repository).deleteById(1L);
+        verify(repository).deleteById(courseId);
     }
 
 }

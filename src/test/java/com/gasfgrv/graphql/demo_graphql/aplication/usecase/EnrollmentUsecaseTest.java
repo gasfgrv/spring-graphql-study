@@ -26,188 +26,190 @@ import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 @ExtendWith(MockitoExtension.class)
 public class EnrollmentUsecaseTest {
 
-        @Mock
-        private EnrollmentRepositoryPort enrollmentRepository;
+    @Mock
+    private EnrollmentRepositoryPort enrollmentRepository;
 
-        @Mock
-        private StudentRepositoryPort studentRepository;
+    @Mock
+    private StudentRepositoryPort studentRepository;
 
-        @Mock
-        private CourseRepositoryPort courseRepository;
+    @Mock
+    private CourseRepositoryPort courseRepository;
 
-        @InjectMocks
-        private EnrollmentUsecase usecase;
+    @InjectMocks
+    private EnrollmentUsecase usecase;
 
-        @Test
-        public void testFindAllEnrollments() {
-                Enrollment enrollment = DataMock.createEnrollmentMock();
+    @Test
+    public void testFindAllEnrollments() {
+        Enrollment enrollment = DataMock.createEnrollmentMock();
 
-                when(enrollmentRepository.findAll()).thenReturn(List.of(enrollment));
+        when(enrollmentRepository.findAll()).thenReturn(List.of(enrollment));
 
-                List<Enrollment> result = usecase.findAllEnrollments();
+        List<Enrollment> result = usecase.findAllEnrollments();
 
-                assertThat(result).isNotNull()
-                                .hasSize(1)
-                                .contains(enrollment);
+        assertThat(result).isNotNull()
+                .hasSize(1)
+                .contains(enrollment);
 
-                verify(enrollmentRepository).findAll();
-        }
+        verify(enrollmentRepository).findAll();
+    }
 
-        @Test
-        public void testFindEnrollmentById() {
-                Enrollment enrollment = DataMock.createEnrollmentMock();
+    @Test
+    public void testFindEnrollmentById() {
+        Enrollment enrollment = DataMock.createEnrollmentMock();
 
-                when(enrollmentRepository.findById(enrollment.getId())).thenReturn(Optional.of(enrollment));
+        when(enrollmentRepository.findById(enrollment.getId())).thenReturn(Optional.of(enrollment));
 
-                Enrollment result = usecase.findEnrollmentById(enrollment.getId()).orElseThrow();
+        Enrollment result = usecase.findEnrollmentById(enrollment.getId()).orElseThrow();
 
-                assertThat(result).isNotNull()
-                                .isEqualTo(enrollment);
+        assertThat(result).isNotNull()
+                .isEqualTo(enrollment);
 
-                verify(enrollmentRepository).findById(enrollment.getId());
-        }
+        verify(enrollmentRepository).findById(enrollment.getId());
+    }
 
-        @Test
-        public void testFindEnrollmentByIdNotFound() {
-                long enrollmentId = 1L;
-                when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.empty());
+    @Test
+    public void testFindEnrollmentByIdNotFound() {
+        long enrollmentId = 1L;
 
-                assertThatThrownBy(() -> usecase.findEnrollmentById(enrollmentId))
-                                .isInstanceOf(EnrollmentNotFoundException.class);
+        when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.empty());
 
-                verify(enrollmentRepository).findById(enrollmentId);
-        }
+        assertThatThrownBy(() -> usecase.findEnrollmentById(enrollmentId))
+                .isInstanceOf(EnrollmentNotFoundException.class)
+                .hasMessageContaining("Enrollment not found");
 
-        @Test
-        public void testFindAllEnrollmentsByStudentsIds() {
-                Enrollment enrollment = DataMock.createEnrollmentMock();
+        verify(enrollmentRepository).findById(enrollmentId);
+    }
 
-                when(enrollmentRepository.findAllByStudentIds(List.of(enrollment.getStudent().getId())))
-                                .thenReturn(List.of(enrollment));
+    @Test
+    public void testFindAllEnrollmentsByStudentsIds() {
+        Enrollment enrollment = DataMock.createEnrollmentMock();
 
-                List<Enrollment> result = usecase
-                                .findAllEnrollmentsByStudentIds(List.of(enrollment.getStudent().getId()));
+        when(enrollmentRepository.findAllByStudentIds(List.of(enrollment.getStudent().getId())))
+                .thenReturn(List.of(enrollment));
 
-                assertThat(result).isNotNull()
-                                .hasSize(1)
-                                .contains(enrollment);
+        List<Enrollment> result = usecase
+                .findAllEnrollmentsByStudentIds(List.of(enrollment.getStudent().getId()));
 
-                verify(enrollmentRepository).findAllByStudentIds(List.of(enrollment.getStudent().getId()));
-        }
+        assertThat(result).isNotNull()
+                .hasSize(1)
+                .contains(enrollment);
 
-        @Test
-        public void testFindAllEnrollmentsByCourseIds() {
-                Enrollment enrollment = DataMock.createEnrollmentMock();
+        verify(enrollmentRepository).findAllByStudentIds(List.of(enrollment.getStudent().getId()));
+    }
 
-                when(enrollmentRepository.findAllByCourseIds(List.of(enrollment.getCourse().getId())))
-                                .thenReturn(List.of(enrollment));
+    @Test
+    public void testFindAllEnrollmentsByCourseIds() {
+        Enrollment enrollment = DataMock.createEnrollmentMock();
 
-                List<Enrollment> result = usecase
-                                .findAllEnrollmentsByCourseIds(List.of(enrollment.getCourse().getId()));
+        when(enrollmentRepository.findAllByCourseIds(List.of(enrollment.getCourse().getId())))
+                .thenReturn(List.of(enrollment));
 
-                assertThat(result).isNotNull()
-                                .hasSize(1)
-                                .contains(enrollment);
+        List<Enrollment> result = usecase
+                .findAllEnrollmentsByCourseIds(List.of(enrollment.getCourse().getId()));
 
-                verify(enrollmentRepository).findAllByCourseIds(List.of(enrollment.getCourse().getId()));
-        }
+        assertThat(result).isNotNull()
+                .hasSize(1)
+                .contains(enrollment);
 
-        @Test
-        public void testCreateEnrollment() {
-                Enrollment enrollment = DataMock.createEnrollmentMock();
+        verify(enrollmentRepository).findAllByCourseIds(List.of(enrollment.getCourse().getId()));
+    }
 
-                when(studentRepository.findById(enrollment.getStudent().getId()))
-                                .thenReturn(Optional.of(enrollment.getStudent()));
-                when(courseRepository.findById(enrollment.getCourse().getId()))
-                                .thenReturn(Optional.of(enrollment.getCourse()));
-                when(enrollmentRepository.save(any(Enrollment.class))).thenReturn(enrollment);
+    @Test
+    public void testCreateEnrollment() {
+        Enrollment enrollment = DataMock.createEnrollmentMock();
 
-                Enrollment result = usecase.createEnrollment(enrollment.getStudent().getId(),
-                                enrollment.getCourse().getId());
+        when(studentRepository.findById(enrollment.getStudent().getId()))
+                .thenReturn(Optional.of(enrollment.getStudent()));
+        when(courseRepository.findById(enrollment.getCourse().getId()))
+                .thenReturn(Optional.of(enrollment.getCourse()));
+        when(enrollmentRepository.save(any(Enrollment.class))).thenReturn(enrollment);
 
-                assertThat(result).isNotNull()
-                                .isEqualTo(enrollment);
+        Enrollment result = usecase.createEnrollment(enrollment.getStudent().getId(),
+                enrollment.getCourse().getId());
 
-                verify(studentRepository).findById(enrollment.getStudent().getId());
-                verify(courseRepository).findById(enrollment.getCourse().getId());
-                verify(enrollmentRepository).save(any(Enrollment.class));
-        }
+        assertThat(result).isNotNull()
+                .isEqualTo(enrollment);
 
-        @Test
-        public void testCreateEnrollmentStudentNotFound() {
-                long studentId = 1L;
-                long courseId = 2L;
+        verify(studentRepository).findById(enrollment.getStudent().getId());
+        verify(courseRepository).findById(enrollment.getCourse().getId());
+        verify(enrollmentRepository).save(any(Enrollment.class));
+    }
 
-                when(studentRepository.findById(studentId)).thenReturn(Optional.empty());
+    @Test
+    public void testCreateEnrollmentStudentNotFound() {
+        long studentId = 1L;
+        long courseId = 2L;
 
-                assertThatThrownBy(() -> usecase.createEnrollment(studentId, courseId))
-                                .isInstanceOf(NullPointerException.class)
-                                .hasMessage("Please provide a student for enrollment");
+        when(studentRepository.findById(studentId)).thenReturn(Optional.empty());
 
-                verify(studentRepository).findById(studentId);
-                verify(courseRepository).findById(courseId);
-                verify(enrollmentRepository, never()).save(any(Enrollment.class));
-        }
+        assertThatThrownBy(() -> usecase.createEnrollment(studentId, courseId))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Please provide a student for enrollment");
 
-        @Test
-        public void testCreateEnrollmentCourseNotFound() {
-                Enrollment enrollment = DataMock.createEnrollmentMock();
+        verify(studentRepository).findById(studentId);
+        verify(courseRepository).findById(courseId);
+        verify(enrollmentRepository, never()).save(any(Enrollment.class));
+    }
 
-                when(studentRepository.findById(enrollment.getStudent().getId()))
-                                .thenReturn(Optional.of(enrollment.getStudent()));
-                when(courseRepository.findById(enrollment.getCourse().getId())).thenReturn(Optional.empty());
+    @Test
+    public void testCreateEnrollmentCourseNotFound() {
+        Enrollment enrollment = DataMock.createEnrollmentMock();
 
-                assertThatThrownBy(() -> usecase.createEnrollment(enrollment.getStudent().getId(),
-                                enrollment.getCourse().getId()))
-                                .isInstanceOf(NullPointerException.class)
-                                .hasMessage("Please provide a course for enrollment");
+        when(studentRepository.findById(enrollment.getStudent().getId()))
+                .thenReturn(Optional.of(enrollment.getStudent()));
+        when(courseRepository.findById(enrollment.getCourse().getId())).thenReturn(Optional.empty());
 
-                verify(studentRepository).findById(enrollment.getStudent().getId());
-                verify(courseRepository).findById(enrollment.getCourse().getId());
-                verify(enrollmentRepository, never()).save(any(Enrollment.class));
-        }
+        assertThatThrownBy(() -> usecase.createEnrollment(enrollment.getStudent().getId(),
+                enrollment.getCourse().getId()))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Please provide a course for enrollment");
 
-        @Test
-        public void testUpdateEnrollment() {
-                Enrollment enrollment = DataMock.createEnrollmentMock();
-                int newProgress = 50;
+        verify(studentRepository).findById(enrollment.getStudent().getId());
+        verify(courseRepository).findById(enrollment.getCourse().getId());
+        verify(enrollmentRepository, never()).save(any(Enrollment.class));
+    }
 
-                when(enrollmentRepository.findById(enrollment.getId())).thenReturn(Optional.of(enrollment));
-                when(enrollmentRepository.save(any(Enrollment.class))).thenReturn(enrollment);
+    @Test
+    public void testUpdateEnrollment() {
+        Enrollment enrollment = DataMock.createEnrollmentMock();
+        int newProgress = 50;
 
-                Enrollment result = usecase.updateEnrollment(enrollment.getId(), newProgress);
+        when(enrollmentRepository.findById(enrollment.getId())).thenReturn(Optional.of(enrollment));
+        when(enrollmentRepository.save(any(Enrollment.class))).thenReturn(enrollment);
 
-                assertThat(result).isNotNull()
-                                .isEqualTo(enrollment);
+        Enrollment result = usecase.updateEnrollment(enrollment.getId(), newProgress);
 
-                verify(enrollmentRepository).findById(enrollment.getId());
-                verify(enrollmentRepository).save(any(Enrollment.class));
-        }
+        assertThat(result).isNotNull()
+                .isEqualTo(enrollment);
 
-        @Test
-        public void testUpdateEnrollmentNotFound() {
-                long enrollmentId = 1L;
-                when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.empty());
+        verify(enrollmentRepository).findById(enrollment.getId());
+        verify(enrollmentRepository).save(any(Enrollment.class));
+    }
 
-                assertThatThrownBy(() -> usecase.updateEnrollment(enrollmentId, 50))
-                                .isInstanceOf(EnrollmentNotFoundException.class);
+    @Test
+    public void testUpdateEnrollmentNotFound() {
+        long enrollmentId = 1L;
+        when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.empty());
 
-                verify(enrollmentRepository).findById(enrollmentId);
-                verify(enrollmentRepository, never()).save(any(Enrollment.class));
-        }
+        assertThatThrownBy(() -> usecase.updateEnrollment(enrollmentId, 50))
+                .isInstanceOf(EnrollmentNotFoundException.class);
 
-        @Test
-        public void testUpdateEnrollmentInvalidProgress() {
-                Enrollment enrollment = DataMock.createEnrollmentMock();
+        verify(enrollmentRepository).findById(enrollmentId);
+        verify(enrollmentRepository, never()).save(any(Enrollment.class));
+    }
 
-                when(enrollmentRepository.findById(enrollment.getId())).thenReturn(Optional.of(enrollment));
+    @Test
+    public void testUpdateEnrollmentInvalidProgress() {
+        Enrollment enrollment = DataMock.createEnrollmentMock();
 
-                assertThatThrownBy(() -> usecase.updateEnrollment(enrollment.getId(), 150))
-                                .isInstanceOf(IllegalArgumentException.class)
-                                .hasMessage("The value of progress should be between 0 and 100");
+        when(enrollmentRepository.findById(enrollment.getId())).thenReturn(Optional.of(enrollment));
 
-                verify(enrollmentRepository).findById(enrollment.getId());
-                verify(enrollmentRepository, never()).save(any(Enrollment.class));
-        }
+        assertThatThrownBy(() -> usecase.updateEnrollment(enrollment.getId(), 150))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("The value of progress should be between 0 and 100");
+
+        verify(enrollmentRepository).findById(enrollment.getId());
+        verify(enrollmentRepository, never()).save(any(Enrollment.class));
+    }
 
 }

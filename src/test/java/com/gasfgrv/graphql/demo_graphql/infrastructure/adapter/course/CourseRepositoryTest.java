@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -51,11 +52,16 @@ public class CourseRepositoryTest {
         repository.flush();
 
         Course foundCourse = adapter.findById(savedCourse.getId())
-                .orElseGet(() -> fail());
+                .orElseGet(Assertions::fail);
 
         assertThat(foundCourse).isNotNull()
-                .extracting(Course::getId, Course::getTitle, Course::getDescription, Course::getLevel)
-                .containsExactly(savedCourse.getId(), savedCourse.getTitle(), savedCourse.getDescription(),
+                .extracting(Course::getId,
+                        Course::getTitle,
+                        Course::getDescription,
+                        Course::getLevel)
+                .containsExactly(savedCourse.getId(),
+                        savedCourse.getTitle(),
+                        savedCourse.getDescription(),
                         savedCourse.getLevel());
     }
 
@@ -83,8 +89,13 @@ public class CourseRepositoryTest {
         Course savedCourse = adapter.save(course);
 
         assertThat(savedCourse).isNotNull()
-                .extracting(Course::getId, Course::getTitle, Course::getDescription, Course::getLevel)
-                .containsExactly(savedCourse.getId(), course.getTitle(), course.getDescription(),
+                .extracting(Course::getId,
+                        Course::getTitle,
+                        Course::getDescription,
+                        Course::getLevel)
+                .containsExactly(savedCourse.getId(),
+                        course.getTitle(),
+                        course.getDescription(),
                         course.getLevel());
     }
 
@@ -104,6 +115,7 @@ public class CourseRepositoryTest {
     @Test
     void testDeleteByIdNotFound() {
         boolean deleted = adapter.deleteById(-1L);
+
         assertThat(deleted).isFalse();
     }
 

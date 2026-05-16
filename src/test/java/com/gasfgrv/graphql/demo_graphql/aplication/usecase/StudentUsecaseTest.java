@@ -51,7 +51,7 @@ public class StudentUsecaseTest {
 
         when(repository.findById(student.getId())).thenReturn(Optional.of(student));
 
-        var result = usecase.findStudentById(student.getId());
+        Optional<Student> result = usecase.findStudentById(student.getId());
 
         assertThat(result).isPresent()
                 .contains(student);
@@ -109,7 +109,9 @@ public class StudentUsecaseTest {
         when(repository.findById(student.getId())).thenReturn(Optional.of(student));
         when(repository.save(any(Student.class))).thenReturn(updatedStudent);
 
-        Student result = usecase.updateStudent(student.getId(), updatedStudent.getName(), updatedStudent.getEmail());
+        Student result = usecase.updateStudent(student.getId(),
+                updatedStudent.getName(),
+                updatedStudent.getEmail());
 
         assertThat(result).isNotNull()
                 .isEqualTo(updatedStudent);
@@ -121,10 +123,14 @@ public class StudentUsecaseTest {
     @Test
     public void testUpdateStudentNotFound() {
         long studentId = 1L;
+        String name = "Name";
+        String email = "email@example.com";
+
         when(repository.findById(studentId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> usecase.updateStudent(studentId, "Name", "email@example.com"))
-                .isInstanceOf(StudentNotFoundException.class);
+        assertThatThrownBy(() -> usecase.updateStudent(studentId, name, email))
+                .isInstanceOf(StudentNotFoundException.class)
+                .hasMessageContaining("Student not found");
 
         verify(repository).findById(studentId);
         verify(repository, never()).save(any(Student.class));

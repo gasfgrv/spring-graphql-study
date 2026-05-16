@@ -53,8 +53,12 @@ public class StudentRepositoryTest {
                 .orElseThrow();
 
         assertThat(foundStudent).isNotNull()
-                .extracting(Student::getId, Student::getName, Student::getEmail)
-                .containsExactly(savedStudent.getId(), savedStudent.getName(), savedStudent.getEmail());
+                .extracting(Student::getId,
+                        Student::getName,
+                        Student::getEmail)
+                .containsExactly(savedStudent.getId(),
+                        savedStudent.getName(),
+                        savedStudent.getEmail());
     }
 
     @Test
@@ -78,8 +82,12 @@ public class StudentRepositoryTest {
         Student savedStudent = adapter.save(student);
 
         assertThat(savedStudent).isNotNull()
-                .extracting(Student::getId, Student::getName, Student::getEmail)
-                .containsExactly(savedStudent.getId(), savedStudent.getName(), savedStudent.getEmail());
+                .extracting(Student::getId,
+                        Student::getName,
+                        Student::getEmail)
+                .containsExactly(savedStudent.getId(),
+                        savedStudent.getName(),
+                        savedStudent.getEmail());
     }
 
     @Test
@@ -97,6 +105,7 @@ public class StudentRepositoryTest {
     @Test
     void testDeleteByIdNotFound() {
         boolean deleted = adapter.deleteById(999L);
+
         assertThat(deleted).isFalse();
     }
 

@@ -28,9 +28,14 @@ class StudentMapperTest {
         StudentEntity entity = mapper.toEntity(student);
 
         assertThat(entity).isNotNull()
-                .extracting(StudentEntity::getId, StudentEntity::getName, StudentEntity::getEmail,
+                .extracting(StudentEntity::getId,
+                        StudentEntity::getName,
+                        StudentEntity::getEmail,
                         StudentEntity::getCreatedAt)
-                .containsExactly(student.getId(), student.getName(), student.getEmail(), student.getCreatedAt());
+                .containsExactly(student.getId(),
+                        student.getName(),
+                        student.getEmail(),
+                        student.getCreatedAt());
 
         assertThat(entity.getEnrollments()).isEmpty();
     }
@@ -41,8 +46,14 @@ class StudentMapperTest {
         Student student = mapper.toDomain(entity);
 
         assertThat(student).isNotNull()
-                .extracting(Student::getId, Student::getName, Student::getEmail, Student::getCreatedAt)
-                .containsExactly(entity.getId(), entity.getName(), entity.getEmail(), entity.getCreatedAt());
+                .extracting(Student::getId,
+                        Student::getName,
+                        Student::getEmail,
+                        Student::getCreatedAt)
+                .containsExactly(entity.getId(),
+                        entity.getName(),
+                        entity.getEmail(),
+                        entity.getCreatedAt());
 
         assertThat(student.getEnrollments()).isNull();
     }

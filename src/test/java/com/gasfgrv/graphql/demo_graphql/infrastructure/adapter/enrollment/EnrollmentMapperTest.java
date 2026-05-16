@@ -2,6 +2,10 @@ package com.gasfgrv.graphql.demo_graphql.infrastructure.adapter.enrollment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.gasfgrv.graphql.demo_graphql.domain.model.Course;
+import com.gasfgrv.graphql.demo_graphql.domain.model.Student;
+import com.gasfgrv.graphql.demo_graphql.infrastructure.adapter.course.CourseEntity;
+import com.gasfgrv.graphql.demo_graphql.infrastructure.adapter.student.StudentEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -24,15 +28,19 @@ class EnrollmentMapperTest {
         EnrollmentEntity entity = mapper.toEntity(enrollment);
 
         assertThat(entity).isNotNull()
-                .extracting(EnrollmentEntity::getId, EnrollmentEntity::getProgress, EnrollmentEntity::getEnrolledAt)
-                .containsExactly(enrollment.getId(), enrollment.getProgress(), enrollment.getEnrolledAt());
+                .extracting(EnrollmentEntity::getId,
+                        EnrollmentEntity::getProgress,
+                        EnrollmentEntity::getEnrolledAt)
+                .containsExactly(enrollment.getId(),
+                        enrollment.getProgress(),
+                        enrollment.getEnrolledAt());
 
         assertThat(entity.getStudent()).isNotNull()
-                .extracting(student -> student.getId())
+                .extracting(StudentEntity::getId)
                 .isEqualTo(enrollment.getStudent().getId());
 
         assertThat(entity.getCourse()).isNotNull()
-                .extracting(course -> course.getId())
+                .extracting(CourseEntity::getId)
                 .isEqualTo(enrollment.getCourse().getId());
     }
 
@@ -42,15 +50,19 @@ class EnrollmentMapperTest {
         Enrollment enrollment = mapper.toDomain(entity);
 
         assertThat(enrollment).isNotNull()
-                .extracting(Enrollment::getId, Enrollment::getProgress, Enrollment::getEnrolledAt)
-                .containsExactly(entity.getId(), entity.getProgress(), entity.getEnrolledAt());
+                .extracting(Enrollment::getId,
+                        Enrollment::getProgress,
+                        Enrollment::getEnrolledAt)
+                .containsExactly(entity.getId(),
+                        entity.getProgress(),
+                        entity.getEnrolledAt());
 
         assertThat(enrollment.getStudent()).isNotNull()
-                .extracting(student -> student.getId())
+                .extracting(Student::getId)
                 .isEqualTo(entity.getStudent().getId());
 
         assertThat(enrollment.getCourse()).isNotNull()
-                .extracting(course -> course.getId())
+                .extracting(Course::getId)
                 .isEqualTo(entity.getCourse().getId());
     }
 
