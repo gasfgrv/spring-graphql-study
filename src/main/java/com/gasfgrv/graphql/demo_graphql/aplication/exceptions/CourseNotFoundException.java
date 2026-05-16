@@ -6,4 +6,8 @@ public class CourseNotFoundException extends RuntimeException {
         super("Course not found");
     }
 
+    public CourseNotFoundException(String message) {
+        super(message);
+    }
+
 }

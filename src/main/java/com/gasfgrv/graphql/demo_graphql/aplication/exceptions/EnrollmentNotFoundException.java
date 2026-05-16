@@ -6,4 +6,8 @@ public class EnrollmentNotFoundException extends RuntimeException {
         super("Enrollment not found");
     }
 
+    public EnrollmentNotFoundException(String message) {
+        super(message);
+    }
+
 }
