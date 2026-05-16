@@ -81,8 +81,22 @@ public class DataMock {
                 .create();
     }
 
+    public static StudentEntity createStudentJpaEntityMock() {
+        return Instancio.of(StudentEntity.class)
+                .ignore(Select.field(StudentEntity::getId))
+                .ignore(Select.field(StudentEntity::getEnrollments))
+                .create();
+    }
+
     public static CourseEntity createCourseEntityMock() {
         return Instancio.of(CourseEntity.class)
+                .ignore(Select.field(CourseEntity::getEnrollments))
+                .create();
+    }
+
+    public static CourseEntity createCourseJpaEntityMock() {
+        return Instancio.of(CourseEntity.class)
+                .ignore(Select.field(CourseEntity::getId))
                 .ignore(Select.field(CourseEntity::getEnrollments))
                 .create();
     }
@@ -91,6 +105,15 @@ public class DataMock {
         return Instancio.of(EnrollmentEntity.class)
                 .supply(Select.field(EnrollmentEntity::getStudent), DataMock::createStudentEntityMock)
                 .supply(Select.field(EnrollmentEntity::getCourse), DataMock::createCourseEntityMock)
+                .create();
+    }
+
+    public static EnrollmentEntity createEnrollmentJpaEntityMock() {
+        return Instancio.of(EnrollmentEntity.class)
+                .ignore(Select.field(EnrollmentEntity::getId))
+                .generate(Select.field(EnrollmentEntity::getProgress), gen -> gen.ints().range(1, 100))
+                .supply(Select.field(EnrollmentEntity::getStudent), DataMock::createStudentJpaEntityMock)
+                .supply(Select.field(EnrollmentEntity::getCourse), DataMock::createCourseJpaEntityMock)
                 .create();
     }
 
