@@ -1,7 +1,6 @@
 package com.gasfgrv.graphql.demo_graphql.infrastructure.adapter.course;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
