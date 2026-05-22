@@ -18,7 +18,9 @@ import com.gasfgrv.graphql.demo_graphql.domain.port.in.EnrollmentUsecasePort;
 import com.gasfgrv.graphql.demo_graphql.domain.port.in.StudentUsecasePort;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class EnrollmentResolver {
@@ -29,16 +31,19 @@ public class EnrollmentResolver {
 
         @QueryMapping
         public List<Enrollment> findAllEnrollments() {
+                log.info("GraphQL Query: findAllEnrollments");
                 return enrollmentUsecase.findAllEnrollments();
         }
 
         @QueryMapping
         public Enrollment findEnrollmentById(@Argument Long id) {
+                log.info("GraphQL Query: findEnrollmentById with ID: {}", id);
                 return enrollmentUsecase.findEnrollmentById(id).get();
         }
 
         @BatchMapping(field = "student", typeName = "Enrollment")
         public Map<Enrollment, Student> student(List<Enrollment> enrollments) {
+                log.info("GraphQL BatchMapping: student for {} enrollments", enrollments.size());
                 List<Long> studentIds = enrollments.stream()
                                 .map(enrollment -> enrollment.getStudent().getId())
                                 .distinct()
@@ -56,6 +61,7 @@ public class EnrollmentResolver {
 
         @BatchMapping(field = "course", typeName = "Enrollment")
         public Map<Enrollment, Course> course(List<Enrollment> enrollments) {
+                log.info("GraphQL BatchMapping: course for {} enrollments", enrollments.size());
                 List<Long> courseIds = enrollments.stream()
                                 .map(enrollment -> enrollment.getCourse().getId())
                                 .distinct()
@@ -73,11 +79,13 @@ public class EnrollmentResolver {
 
         @MutationMapping
         public Enrollment createEnrollment(@Argument long studentId, @Argument long courseId) {
+                log.info("GraphQL Mutation: createEnrollment for student ID: {} and course ID: {}", studentId, courseId);
                 return enrollmentUsecase.createEnrollment(studentId, courseId);
         }
 
         @MutationMapping
         public Enrollment updateEnrollmentProgress(@Argument Long id, @Argument int progress) {
+                log.info("GraphQL Mutation: updateEnrollmentProgress for ID: {} with progress: {}", id, progress);
                 return enrollmentUsecase.updateEnrollment(id, progress);
         }
 
