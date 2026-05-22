@@ -7,8 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.GraphQlTester;
@@ -26,6 +29,7 @@ import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
 @GraphQlTest(EnrollmentResolver.class)
 @Import(GraphQLConfig.class)
+@ExtendWith(OutputCaptureExtension.class)
 class EnrollmentResolverTest {
 
     @Autowired
@@ -41,7 +45,7 @@ class EnrollmentResolverTest {
     private EnrollmentUsecasePort enrollmentUsecase;
 
     @Test
-    void testFindAllEnrollments() {
+    void testFindAllEnrollments(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
 
         when(enrollmentUsecase.findAllEnrollments()).thenReturn(List.of(enrollment));
@@ -58,13 +62,16 @@ class EnrollmentResolverTest {
                 .path("findAllEnrollments")
                 .entityList(Enrollment.class)
                 .hasSize(1);
+
+        assertThat(output.getOut()).contains("GraphQL Query: findAllEnrollments");
     }
 
     @Test
-    void testFindEnrollmentById() {
+    void testFindEnrollmentById(CapturedOutput output) {
+        long id = 1L;
         Enrollment enrollment = DataMock.createEnrollmentMock();
 
-        when(enrollmentUsecase.findEnrollmentById(1L)).thenReturn(Optional.of(enrollment));
+        when(enrollmentUsecase.findEnrollmentById(id)).thenReturn(Optional.of(enrollment));
 
         graphQlTester.document("""
                 query($id: ID!) {
@@ -74,7 +81,7 @@ class EnrollmentResolverTest {
                     }
                 }
                 """)
-                .variable("id", 1L)
+                .variable("id", id)
                 .execute()
                 .path("findEnrollmentById")
                 .entity(Enrollment.class)
@@ -82,6 +89,8 @@ class EnrollmentResolverTest {
                     assertThat(enrollmentResponse)
                             .isNotNull();
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Query: findEnrollmentById with ID: " + id);
     }
 
     @Test
@@ -108,7 +117,7 @@ class EnrollmentResolverTest {
     }
 
     @Test
-    void testStudentBatchMapping() {
+    void testStudentBatchMapping(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
         Student student = enrollment.getStudent();
 
@@ -136,10 +145,12 @@ class EnrollmentResolverTest {
                             .extracting("name", "email")
                             .containsExactly(student.getName(), student.getEmail());
                 });
+
+        assertThat(output.getOut()).contains("GraphQL BatchMapping: student for 1 enrollments");
     }
 
     @Test
-    void testCourseBatchMapping() {
+    void testCourseBatchMapping(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
         Course course = enrollment.getCourse();
 
@@ -167,10 +178,12 @@ class EnrollmentResolverTest {
                             .extracting("title", "description")
                             .containsExactly(course.getTitle(), course.getDescription());
                 });
+
+        assertThat(output.getOut()).contains("GraphQL BatchMapping: course for 1 enrollments");
     }
 
     @Test
-    void testCreateEnrollment() {
+    void testCreateEnrollment(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
         Long studentId = enrollment.getStudent().getId();
         Long courseId = enrollment.getCourse().getId();
@@ -194,10 +207,12 @@ class EnrollmentResolverTest {
                     assertThat(enrollmentResponse)
                             .isNotNull();
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Mutation: createEnrollment for student ID: " + studentId + " and course ID: " + courseId);
     }
 
     @Test
-    void testUpdateEnrollmentProgress() {
+    void testUpdateEnrollmentProgress(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
         Long enrollmentId = enrollment.getId();
         int newProgress = 80;
@@ -221,6 +236,8 @@ class EnrollmentResolverTest {
                     assertThat(enrollmentResponse)
                             .isNotNull();
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Mutation: updateEnrollmentProgress for ID: " + enrollmentId + " with progress: " + newProgress);
     }
 
 }

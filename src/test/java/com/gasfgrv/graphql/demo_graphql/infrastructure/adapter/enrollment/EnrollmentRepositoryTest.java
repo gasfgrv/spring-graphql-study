@@ -5,10 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -22,6 +25,7 @@ import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
+@ExtendWith(OutputCaptureExtension.class)
 @Import({ TestcontainersConfiguration.class, EnrollmentRepository.class, EnrollmentMapperImpl.class })
 public class EnrollmentRepositoryTest {
 
@@ -38,7 +42,7 @@ public class EnrollmentRepositoryTest {
     private CourseJpaRepository courseRepository;
 
     @Test
-    void testFindAll() {
+    void testFindAll(CapturedOutput output) {
         EnrollmentEntity enrollment01 = DataMock.createEnrollmentJpaEntityMock();
         EnrollmentEntity enrollment02 = DataMock.createEnrollmentJpaEntityMock();
 
@@ -53,10 +57,11 @@ public class EnrollmentRepositoryTest {
         List<Enrollment> enrollments = adapter.findAll();
 
         assertThat(enrollments).hasSize(2);
+        assertThat(output.getOut()).contains("Finding all enrollments");
     }
 
     @Test
-    void testFindById() {
+    void testFindById(CapturedOutput output) {
         EnrollmentEntity enrollment = DataMock.createEnrollmentJpaEntityMock();
 
         studentRepository.save(enrollment.getStudent());
@@ -75,10 +80,12 @@ public class EnrollmentRepositoryTest {
                 .containsExactly(savedEnrollment.getId(),
                         savedEnrollment.getStudent().getId(),
                         savedEnrollment.getCourse().getId());
+
+        assertThat(output.getOut()).contains("Finding enrollment by ID: " + savedEnrollment.getId());
     }
 
     @Test
-    void testFindAllByStudentIds() {
+    void testFindAllByStudentIds(CapturedOutput output) {
         EnrollmentEntity enrollment01 = DataMock.createEnrollmentJpaEntityMock();
         EnrollmentEntity enrollment02 = DataMock.createEnrollmentJpaEntityMock();
 
@@ -96,10 +103,12 @@ public class EnrollmentRepositoryTest {
         assertThat(enrollments).hasSize(2)
                 .extracting(enrollmentStudent -> enrollmentStudent.getStudent().getId())
                 .containsExactlyInAnyOrder(enrollment01.getStudent().getId(), enrollment02.getStudent().getId());
+
+        assertThat(output.getOut()).contains("Finding enrollments by student IDs: [" + enrollment01.getStudent().getId() + ", " + enrollment02.getStudent().getId() + "]");
     }
 
     @Test
-    void testFindAllByCourseIds() {
+    void testFindAllByCourseIds(CapturedOutput output) {
         EnrollmentEntity enrollment01 = DataMock.createEnrollmentJpaEntityMock();
         EnrollmentEntity enrollment02 = DataMock.createEnrollmentJpaEntityMock();
 
@@ -117,10 +126,12 @@ public class EnrollmentRepositoryTest {
         assertThat(enrollments).hasSize(2)
                 .extracting(enrollmentCourse -> enrollmentCourse.getCourse().getId())
                 .containsExactlyInAnyOrder(enrollment01.getCourse().getId(), enrollment02.getCourse().getId());
+
+        assertThat(output.getOut()).contains("Finding enrollments by course IDs: [" + enrollment01.getCourse().getId() + ", " + enrollment02.getCourse().getId() + "]");
     }
 
     @Test
-    void testSave() {
+    void testSave(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
         ReflectionTestUtils.setField(enrollment, "id", null);
 
@@ -139,6 +150,8 @@ public class EnrollmentRepositoryTest {
                 .containsExactly(savedEnrollment.getId(),
                         enrollment.getStudent().getId(),
                         enrollment.getCourse().getId());
+
+        assertThat(output.getOut()).contains("Saving enrollment: " + enrollment);
     }
 
 }

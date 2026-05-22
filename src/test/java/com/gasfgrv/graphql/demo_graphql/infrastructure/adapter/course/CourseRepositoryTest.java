@@ -6,10 +6,13 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -20,6 +23,7 @@ import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
+@ExtendWith(OutputCaptureExtension.class)
 @Import({ TestcontainersConfiguration.class, CourseRepository.class, CourseMapperImpl.class,
         EnrollmentMapperImpl.class })
 public class CourseRepositoryTest {
@@ -31,7 +35,7 @@ public class CourseRepositoryTest {
     private CourseJpaRepository repository;
 
     @Test
-    void testFindAll() {
+    void testFindAll(CapturedOutput output) {
         CourseEntity course01 = DataMock.createCourseJpaEntityMock();
         CourseEntity course02 = DataMock.createCourseJpaEntityMock();
 
@@ -41,10 +45,11 @@ public class CourseRepositoryTest {
         List<Course> courses = adapter.findAll();
 
         assertThat(courses).hasSize(2);
+        assertThat(output.getOut()).contains("Finding all courses");
     }
 
     @Test
-    void testFindById() {
+    void testFindById(CapturedOutput output) {
         CourseEntity course = DataMock.createCourseJpaEntityMock();
 
         CourseEntity savedCourse = repository.save(course);
@@ -62,10 +67,12 @@ public class CourseRepositoryTest {
                         savedCourse.getTitle(),
                         savedCourse.getDescription(),
                         savedCourse.getLevel());
+
+        assertThat(output.getOut()).contains("Finding course by ID: " + savedCourse.getId());
     }
 
     @Test
-    void testFindAllByIds() {
+    void testFindAllByIds(CapturedOutput output) {
         CourseEntity course01 = DataMock.createCourseJpaEntityMock();
         CourseEntity course02 = DataMock.createCourseJpaEntityMock();
 
@@ -78,10 +85,12 @@ public class CourseRepositoryTest {
         assertThat(courses).hasSize(2)
                 .extracting(Course::getId)
                 .containsExactlyInAnyOrder(savedCourse01.getId(), savedCourse02.getId());
+
+        assertThat(output.getOut()).contains("Finding courses by IDs: [" + savedCourse01.getId() + ", " + savedCourse02.getId() + "]");
     }
 
     @Test
-    void testSave() {
+    void testSave(CapturedOutput output) {
         Course course = DataMock.createCourseMock();
         ReflectionTestUtils.setField(course, "id", null);
 
@@ -96,10 +105,12 @@ public class CourseRepositoryTest {
                         course.getTitle(),
                         course.getDescription(),
                         course.getLevel());
+
+        assertThat(output.getOut()).contains("Saving course: " + course);
     }
 
     @Test
-    void testDeleteById() {
+    void testDeleteById(CapturedOutput output) {
         CourseEntity course = DataMock.createCourseJpaEntityMock();
 
         CourseEntity savedCourse = repository.save(course);
@@ -109,13 +120,17 @@ public class CourseRepositoryTest {
 
         assertThat(deleted).isTrue();
         assertThat(repository.findById(savedCourse.getId())).isEmpty();
+
+        assertThat(output.getOut()).contains("Deleting course by ID: " + savedCourse.getId());
     }
 
     @Test
-    void testDeleteByIdNotFound() {
-        boolean deleted = adapter.deleteById(-1L);
+    void testDeleteByIdNotFound(CapturedOutput output) {
+        long id = -1L;
+        boolean deleted = adapter.deleteById(id);
 
         assertThat(deleted).isFalse();
+        assertThat(output.getOut()).contains("Course with ID " + id + " not found, cannot delete");
     }
 
 }

@@ -15,13 +15,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import com.gasfgrv.graphql.demo_graphql.aplication.exceptions.StudentNotFoundException;
 import com.gasfgrv.graphql.demo_graphql.domain.model.Student;
 import com.gasfgrv.graphql.demo_graphql.domain.port.out.StudentRepositoryPort;
 import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 public class StudentUsecaseTest {
 
     @Mock
@@ -31,7 +33,7 @@ public class StudentUsecaseTest {
     private StudentUsecase usecase;
 
     @Test
-    public void testFindAllStudents() {
+    public void testFindAllStudents(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
 
         when(repository.findAll()).thenReturn(List.of(student));
@@ -42,11 +44,13 @@ public class StudentUsecaseTest {
                 .hasSize(1)
                 .contains(student);
 
+        assertThat(output.getOut()).contains("Usecase: finding all students");
+
         verify(repository).findAll();
     }
 
     @Test
-    public void testFindStudentById() {
+    public void testFindStudentById(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
 
         when(repository.findById(student.getId())).thenReturn(Optional.of(student));
@@ -56,22 +60,26 @@ public class StudentUsecaseTest {
         assertThat(result).isPresent()
                 .contains(student);
 
+        assertThat(output.getOut()).contains("Usecase: finding student by ID: " + student.getId());
+
         verify(repository).findById(student.getId());
     }
 
     @Test
-    public void testFindStudentByIdNotFound() {
+    public void testFindStudentByIdNotFound(CapturedOutput output) {
         long studentId = 1L;
         when(repository.findById(studentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> usecase.findStudentById(studentId))
                 .isInstanceOf(StudentNotFoundException.class);
 
+        assertThat(output.getOut()).contains("Student with ID " + studentId + " not found");
+
         verify(repository).findById(studentId);
     }
 
     @Test
-    public void testFindAllStudentsByIds() {
+    public void testFindAllStudentsByIds(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
 
         when(repository.findAllByIds(List.of(student.getId()))).thenReturn(List.of(student));
@@ -82,11 +90,13 @@ public class StudentUsecaseTest {
                 .hasSize(1)
                 .contains(student);
 
+        assertThat(output.getOut()).contains("Usecase: finding students by IDs: [" + student.getId() + "]");
+
         verify(repository).findAllByIds(List.of(student.getId()));
     }
 
     @Test
-    public void testCreateStudent() {
+    public void testCreateStudent(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
 
         when(repository.save(any(Student.class))).thenReturn(student);
@@ -96,11 +106,13 @@ public class StudentUsecaseTest {
         assertThat(created).isNotNull()
                 .isEqualTo(student);
 
+        assertThat(output.getOut()).contains("Usecase: creating student with name: " + student.getName());
+
         verify(repository).save(any(Student.class));
     }
 
     @Test
-    public void testUpdateStudent() {
+    public void testUpdateStudent(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
         Student updatedStudent = new Student()
                 .validateName("Updated Name")
@@ -116,12 +128,14 @@ public class StudentUsecaseTest {
         assertThat(result).isNotNull()
                 .isEqualTo(updatedStudent);
 
+        assertThat(output.getOut()).contains("Usecase: updating student with ID: " + student.getId());
+
         verify(repository).findById(student.getId());
         verify(repository).save(any(Student.class));
     }
 
     @Test
-    public void testUpdateStudentNotFound() {
+    public void testUpdateStudentNotFound(CapturedOutput output) {
         long studentId = 1L;
         String name = "Name";
         String email = "email@example.com";
@@ -132,12 +146,14 @@ public class StudentUsecaseTest {
                 .isInstanceOf(StudentNotFoundException.class)
                 .hasMessageContaining("Student not found");
 
+        assertThat(output.getOut()).contains("Student with ID " + studentId + " not found for update");
+
         verify(repository).findById(studentId);
         verify(repository, never()).save(any(Student.class));
     }
 
     @Test
-    public void testDeleteStudent() {
+    public void testDeleteStudent(CapturedOutput output) {
         long studentId = 1L;
 
         when(repository.deleteById(studentId)).thenReturn(true);
@@ -145,6 +161,8 @@ public class StudentUsecaseTest {
         boolean deleted = usecase.deleteStudent(studentId);
 
         assertThat(deleted).isTrue();
+
+        assertThat(output.getOut()).contains("Usecase: deleting student with ID: " + studentId);
 
         verify(repository).deleteById(studentId);
     }

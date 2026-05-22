@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.GraphQlTester;
@@ -27,6 +30,7 @@ import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
 @GraphQlTest(StudentResolver.class)
 @Import(GraphQLConfig.class)
+@ExtendWith(OutputCaptureExtension.class)
 class StudentResolverTest {
 
     @Autowired
@@ -39,7 +43,7 @@ class StudentResolverTest {
     private EnrollmentUsecasePort enrollmentUsecase;
 
     @Test
-    void testFindAllStudents() {
+    void testFindAllStudents(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
 
         when(studentUsecase.findAllStudents()).thenReturn(List.of(student));
@@ -57,13 +61,16 @@ class StudentResolverTest {
                 .path("findAllStudents")
                 .entityList(Student.class)
                 .hasSize(1);
+
+        assertThat(output.getOut()).contains("GraphQL Query: findAllStudents");
     }
 
     @Test
-    void testFindStudentById() {
+    void testFindStudentById(CapturedOutput output) {
+        long id = 1L;
         Student student = DataMock.createStudentMock();
 
-        when(studentUsecase.findStudentById(1L)).thenReturn(Optional.of(student));
+        when(studentUsecase.findStudentById(id)).thenReturn(Optional.of(student));
 
         graphQlTester.document("""
                 query($id: ID!) {
@@ -74,7 +81,7 @@ class StudentResolverTest {
                     }
                 }
                 """)
-                .variable("id", 1L)
+                .variable("id", id)
                 .execute()
                 .path("findStudentById")
                 .entity(Student.class)
@@ -84,6 +91,8 @@ class StudentResolverTest {
                             .extracting("name", "email")
                             .containsExactly("Jhon Doe", "john.doe@example.com");
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Query: findStudentById with ID: " + id);
     }
 
     @Test
@@ -110,7 +119,7 @@ class StudentResolverTest {
     }
 
     @Test
-    void testEnrollmentsBatchMapping() {
+    void testEnrollmentsBatchMapping(CapturedOutput output) {
         Student mockStudent = DataMock.createStudentMock(1L);
         Enrollment enrollment = DataMock.createEnrollmentMock(1L);
 
@@ -139,11 +148,14 @@ class StudentResolverTest {
                 .path("findStudentById.enrollments")
                 .entityList(Enrollment.class)
                 .hasSize(1);
+
+        assertThat(output.getOut()).contains("GraphQL BatchMapping: enrollments for 1 students");
     }
 
     @Test
-    void testCreateStudent() {
+    void testCreateStudent(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
+        String name = "Jhon Doe";
 
         when(studentUsecase.createStudent(anyString(), anyString())).thenReturn(student);
 
@@ -156,7 +168,7 @@ class StudentResolverTest {
                     }
                 }
                 """)
-                .variable("name", "Jhon Doe")
+                .variable("name", name)
                 .variable("email", "john.doe@example.com")
                 .execute()
                 .path("createStudent")
@@ -167,12 +179,15 @@ class StudentResolverTest {
                             .extracting("name", "email")
                             .containsExactly("Jhon Doe", "john.doe@example.com");
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Mutation: createStudent with name: " + name);
     }
 
     @Test
-    void testCreateStudentValidationError() {
+    void testCreateStudentValidationError(CapturedOutput output) {
+        String message = "Invalid email";
         when(studentUsecase.createStudent(anyString(), anyString()))
-                .thenThrow(new IllegalArgumentException("Invalid email"));
+                .thenThrow(new IllegalArgumentException(message));
 
         graphQlTester.document("""
                 mutation($name: String!, $email: String!) {
@@ -188,14 +203,17 @@ class StudentResolverTest {
                 .errors()
                 .satisfy(errors -> {
                     assertThat(errors).hasSize(1);
-                    assertThat(errors.get(0).getMessage()).isEqualTo("Invalid email");
+                    assertThat(errors.get(0).getMessage()).isEqualTo(message);
                     assertThat(errors.get(0).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
                 });
+
+        assertThat(output.getOut()).contains("Validation error: " + message);
     }
 
     @Test
-    void testUpdateStudent() {
+    void testUpdateStudent(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
+        long id = 1L;
 
         when(studentUsecase.updateStudent(anyLong(), anyString(), anyString())).thenReturn(student);
 
@@ -208,7 +226,7 @@ class StudentResolverTest {
                     }
                 }
                 """)
-                .variable("id", 1L)
+                .variable("id", id)
                 .variable("name", "Jhon Doe")
                 .variable("email", "john.doe@example.com")
                 .execute()
@@ -220,10 +238,13 @@ class StudentResolverTest {
                             .extracting("name", "email")
                             .containsExactly("Jhon Doe", "john.doe@example.com");
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Mutation: updateStudent with ID: " + id);
     }
 
     @Test
-    void testDeleteStudent() {
+    void testDeleteStudent(CapturedOutput output) {
+        long id = 1L;
         when(studentUsecase.deleteStudent(anyLong())).thenReturn(true);
 
         graphQlTester.document("""
@@ -231,10 +252,12 @@ class StudentResolverTest {
                     deleteStudent(id: $id)
                 }
                 """)
-                .variable("id", 1L)
+                .variable("id", id)
                 .execute()
                 .path("deleteStudent")
                 .entity(Boolean.class)
                 .isEqualTo(true);
+
+        assertThat(output.getOut()).contains("GraphQL Mutation: deleteStudent with ID: " + id);
     }
 }

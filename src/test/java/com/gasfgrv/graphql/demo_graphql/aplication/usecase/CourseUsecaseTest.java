@@ -15,13 +15,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import com.gasfgrv.graphql.demo_graphql.aplication.exceptions.CourseNotFoundException;
 import com.gasfgrv.graphql.demo_graphql.domain.model.Course;
 import com.gasfgrv.graphql.demo_graphql.domain.port.out.CourseRepositoryPort;
 import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 public class CourseUsecaseTest {
 
     @Mock
@@ -31,7 +33,7 @@ public class CourseUsecaseTest {
     private CourseUsecase usecase;
 
     @Test
-    public void testFindAllCourses() {
+    public void testFindAllCourses(CapturedOutput output) {
         Course course = DataMock.createCourseMock();
 
         when(repository.findAll()).thenReturn(List.of(course));
@@ -42,11 +44,13 @@ public class CourseUsecaseTest {
                 .hasSize(1)
                 .contains(course);
 
+        assertThat(output.getOut()).contains("Usecase: finding all courses");
+
         verify(repository).findAll();
     }
 
     @Test
-    public void testFindCourseById() {
+    public void testFindCourseById(CapturedOutput output) {
         long courseId = 1L;
         Course course = DataMock.createCourseMock();
 
@@ -57,11 +61,13 @@ public class CourseUsecaseTest {
         assertThat(result).isPresent()
                 .contains(course);
 
+        assertThat(output.getOut()).contains("Usecase: finding course by ID: " + courseId);
+
         verify(repository).findById(courseId);
     }
 
     @Test
-    public void testFindCourseByIdNotFound() {
+    public void testFindCourseByIdNotFound(CapturedOutput output) {
         long courseId = 1L;
 
         when(repository.findById(courseId)).thenReturn(Optional.empty());
@@ -69,11 +75,13 @@ public class CourseUsecaseTest {
         assertThatThrownBy(() -> usecase.findCourseById(courseId))
                 .isInstanceOf(CourseNotFoundException.class);
 
+        assertThat(output.getOut()).contains("Course with ID " + courseId + " not found");
+
         verify(repository).findById(courseId);
     }
 
     @Test
-    public void testFindAllCoursesByIds() {
+    public void testFindAllCoursesByIds(CapturedOutput output) {
         long courseId = 1L;
         Course course = DataMock.createCourseMock();
 
@@ -85,11 +93,13 @@ public class CourseUsecaseTest {
                 .hasSize(1)
                 .contains(course);
 
+        assertThat(output.getOut()).contains("Usecase: finding courses by IDs: [" + courseId + "]");
+
         verify(repository).findAllByIds(List.of(courseId));
     }
 
     @Test
-    public void testCreateCourse() {
+    public void testCreateCourse(CapturedOutput output) {
         Course course = DataMock.createCourseMock();
 
         when(repository.save(any(Course.class))).thenReturn(course);
@@ -101,11 +111,13 @@ public class CourseUsecaseTest {
         assertThat(created).isNotNull()
                 .isEqualTo(course);
 
+        assertThat(output.getOut()).contains("Usecase: creating course with title: " + course.getTitle());
+
         verify(repository).save(any(Course.class));
     }
 
     @Test
-    public void testUpdateCourse() {
+    public void testUpdateCourse(CapturedOutput output) {
         long courseId = 1L;
         String newTitle = "New Title";
         String newDescription = "New Description";
@@ -121,12 +133,14 @@ public class CourseUsecaseTest {
         assertThat(result).isNotNull()
                 .isEqualTo(updatedCourse);
 
+        assertThat(output.getOut()).contains("Usecase: updating course with ID: " + courseId);
+
         verify(repository).findById(courseId);
         verify(repository).save(any(Course.class));
     }
 
     @Test
-    public void testUpdateCourseNotFound() {
+    public void testUpdateCourseNotFound(CapturedOutput output) {
         long courseId = 1L;
         String newTitle = "New Title";
         String newDescription = "New Description";
@@ -138,12 +152,14 @@ public class CourseUsecaseTest {
                 .isInstanceOf(CourseNotFoundException.class)
                 .hasMessageContaining("Course not found");
 
+        assertThat(output.getOut()).contains("Course with ID " + courseId + " not found for update");
+
         verify(repository).findById(courseId);
         verify(repository, never()).save(any(Course.class));
     }
 
     @Test
-    public void testDeleteCourse() {
+    public void testDeleteCourse(CapturedOutput output) {
         long courseId = 1L;
 
         when(repository.deleteById(courseId)).thenReturn(true);
@@ -151,6 +167,8 @@ public class CourseUsecaseTest {
         boolean deleted = usecase.deleteCourse(courseId);
 
         assertThat(deleted).isTrue();
+
+        assertThat(output.getOut()).contains("Usecase: deleting course with ID: " + courseId);
 
         verify(repository).deleteById(courseId);
     }

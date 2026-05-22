@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.GraphQlTester;
@@ -27,6 +30,7 @@ import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
 @GraphQlTest(CourseResolver.class)
 @Import(GraphQLConfig.class)
+@ExtendWith(OutputCaptureExtension.class)
 class CourseResolverTest {
 
     @Autowired
@@ -39,7 +43,7 @@ class CourseResolverTest {
     private EnrollmentUsecasePort enrollmentUsecase;
 
     @Test
-    void testFindAllCourses() {
+    void testFindAllCourses(CapturedOutput output) {
         Course course = DataMock.createCourseMock();
 
         when(courseUsecase.findAllCourses()).thenReturn(List.of(course));
@@ -58,13 +62,16 @@ class CourseResolverTest {
                 .path("findAllCourses")
                 .entityList(Course.class)
                 .hasSize(1);
+
+        assertThat(output.getOut()).contains("GraphQL Query: findAllCourses");
     }
 
     @Test
-    void testFindCourseById() {
+    void testFindCourseById(CapturedOutput output) {
+        long id = 1L;
         Course course = DataMock.createCourseMock();
 
-        when(courseUsecase.findCourseById(1L)).thenReturn(Optional.of(course));
+        when(courseUsecase.findCourseById(id)).thenReturn(Optional.of(course));
 
         graphQlTester.document("""
                 query($id: ID!) {
@@ -76,7 +83,7 @@ class CourseResolverTest {
                     }
                 }
                 """)
-                .variable("id", 1L)
+                .variable("id", id)
                 .execute()
                 .path("findCourseById")
                 .entity(Course.class)
@@ -86,11 +93,14 @@ class CourseResolverTest {
                             .extracting("title", "description")
                             .containsExactly("Introduction to GraphQL", "Learn the basics of GraphQL");
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Query: findCourseById with ID: " + id);
     }
 
     @Test
-    void testFindCourseByIdNotFound() {
-        when(courseUsecase.findCourseById(1L)).thenThrow(new CourseNotFoundException("Course not found"));
+    void testFindCourseByIdNotFound(CapturedOutput output) {
+        String message = "Course not found";
+        when(courseUsecase.findCourseById(1L)).thenThrow(new CourseNotFoundException(message));
 
         graphQlTester.document("""
                 query($id: ID!) {
@@ -105,13 +115,15 @@ class CourseResolverTest {
                 .errors()
                 .satisfy(errors -> {
                     assertThat(errors).hasSize(1);
-                    assertThat(errors.get(0).getMessage()).isEqualTo("Course not found");
+                    assertThat(errors.get(0).getMessage()).isEqualTo(message);
                     assertThat(errors.get(0).getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
                 });
+
+        assertThat(output.getOut()).contains("Resource not found: " + message);
     }
 
     @Test
-    void testEnrollmentsBatchMapping() {
+    void testEnrollmentsBatchMapping(CapturedOutput output) {
         Course mockCourse = DataMock.createCourseMock(1L);
         Enrollment enrollment = DataMock.createEnrollmentMock(1L);
 
@@ -139,11 +151,14 @@ class CourseResolverTest {
                 .path("findCourseById.enrollments")
                 .entityList(Enrollment.class)
                 .hasSize(1);
+
+        assertThat(output.getOut()).contains("GraphQL BatchMapping: enrollments for 1 courses");
     }
 
     @Test
-    void testCreateCourse() {
+    void testCreateCourse(CapturedOutput output) {
         Course course = DataMock.createCourseMock();
+        String title = "New Course";
 
         when(courseUsecase.createCourse(anyString(), anyString(), anyString())).thenReturn(course);
 
@@ -157,7 +172,7 @@ class CourseResolverTest {
                     }
                 }
                 """)
-                .variable("title", "New Course")
+                .variable("title", title)
                 .variable("description", "New Description")
                 .variable("level", "Avançado")
                 .execute()
@@ -169,11 +184,14 @@ class CourseResolverTest {
                             .extracting("title", "description")
                             .containsExactly("Introduction to GraphQL", "Learn the basics of GraphQL");
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Mutation: createCourse with title: " + title);
     }
 
     @Test
-    void testUpdateCourse() {
+    void testUpdateCourse(CapturedOutput output) {
         Course course = DataMock.createCourseMock();
+        long id = 1L;
 
         when(courseUsecase.updateCourse(anyLong(), anyString(), anyString(), anyString())).thenReturn(course);
 
@@ -187,7 +205,7 @@ class CourseResolverTest {
                     }
                 }
                 """)
-                .variable("id", 1L)
+                .variable("id", id)
                 .variable("title", "Updated Course")
                 .variable("description", "Updated Description")
                 .variable("level", "Avançado")
@@ -200,10 +218,13 @@ class CourseResolverTest {
                             .extracting("title", "description")
                             .containsExactly("Introduction to GraphQL", "Learn the basics of GraphQL");
                 });
+
+        assertThat(output.getOut()).contains("GraphQL Mutation: updateCourse with ID: " + id);
     }
 
     @Test
-    void testDeleteCourse() {
+    void testDeleteCourse(CapturedOutput output) {
+        long id = 1L;
         when(courseUsecase.deleteCourse(anyLong())).thenReturn(true);
 
         graphQlTester.document("""
@@ -211,11 +232,13 @@ class CourseResolverTest {
                     deleteCourse(id: $id)
                 }
                 """)
-                .variable("id", 1L)
+                .variable("id", id)
                 .execute()
                 .path("deleteCourse")
                 .entity(Boolean.class)
                 .isEqualTo(true);
+
+        assertThat(output.getOut()).contains("GraphQL Mutation: deleteCourse with ID: " + id);
     }
 
 }

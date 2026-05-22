@@ -5,10 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -19,6 +22,7 @@ import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
+@ExtendWith(OutputCaptureExtension.class)
 @Import({ TestcontainersConfiguration.class, StudentRepository.class, StudentMapperImpl.class,
         EnrollmentMapperImpl.class })
 public class StudentRepositoryTest {
@@ -30,7 +34,7 @@ public class StudentRepositoryTest {
     private StudentJpaRepository repository;
 
     @Test
-    void testFindAll() {
+    void testFindAll(CapturedOutput output) {
         StudentEntity student01 = DataMock.createStudentJpaEntityMock();
         StudentEntity student02 = DataMock.createStudentJpaEntityMock();
 
@@ -40,10 +44,11 @@ public class StudentRepositoryTest {
         List<Student> students = adapter.findAll();
 
         assertThat(students).hasSize(2);
+        assertThat(output.getOut()).contains("Finding all students");
     }
 
     @Test
-    void testFindById() {
+    void testFindById(CapturedOutput output) {
         StudentEntity student = DataMock.createStudentJpaEntityMock();
 
         StudentEntity savedStudent = repository.save(student);
@@ -59,10 +64,12 @@ public class StudentRepositoryTest {
                 .containsExactly(savedStudent.getId(),
                         savedStudent.getName(),
                         savedStudent.getEmail());
+
+        assertThat(output.getOut()).contains("Finding student by ID: " + savedStudent.getId());
     }
 
     @Test
-    void testFindAllByIds() {
+    void testFindAllByIds(CapturedOutput output) {
         StudentEntity student01 = DataMock.createStudentJpaEntityMock();
         StudentEntity student02 = DataMock.createStudentJpaEntityMock();
 
@@ -72,10 +79,11 @@ public class StudentRepositoryTest {
         List<Student> students = adapter.findAllByIds(List.of(student01.getId(), student02.getId()));
 
         assertThat(students).hasSize(2);
+        assertThat(output.getOut()).contains("Finding students by IDs: [" + student01.getId() + ", " + student02.getId() + "]");
     }
 
     @Test
-    void testSave() {
+    void testSave(CapturedOutput output) {
         Student student = DataMock.createStudentMock();
         ReflectionTestUtils.setField(student, "id", null);
 
@@ -88,10 +96,12 @@ public class StudentRepositoryTest {
                 .containsExactly(savedStudent.getId(),
                         savedStudent.getName(),
                         savedStudent.getEmail());
+
+        assertThat(output.getOut()).contains("Saving student: " + student);
     }
 
     @Test
-    void testDeleteById() {
+    void testDeleteById(CapturedOutput output) {
         StudentEntity student = DataMock.createStudentJpaEntityMock();
 
         StudentEntity savedStudent = repository.save(student);
@@ -100,13 +110,16 @@ public class StudentRepositoryTest {
         boolean deleted = adapter.deleteById(savedStudent.getId());
 
         assertThat(deleted).isTrue();
+        assertThat(output.getOut()).contains("Deleting student by ID: " + savedStudent.getId());
     }
 
     @Test
-    void testDeleteByIdNotFound() {
-        boolean deleted = adapter.deleteById(999L);
+    void testDeleteByIdNotFound(CapturedOutput output) {
+        long id = 999L;
+        boolean deleted = adapter.deleteById(id);
 
         assertThat(deleted).isFalse();
+        assertThat(output.getOut()).contains("Student with ID " + id + " not found, cannot delete");
     }
 
 }

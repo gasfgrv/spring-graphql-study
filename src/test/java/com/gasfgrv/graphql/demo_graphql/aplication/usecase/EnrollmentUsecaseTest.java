@@ -15,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import com.gasfgrv.graphql.demo_graphql.aplication.exceptions.EnrollmentNotFoundException;
 import com.gasfgrv.graphql.demo_graphql.domain.model.Enrollment;
@@ -23,7 +25,7 @@ import com.gasfgrv.graphql.demo_graphql.domain.port.out.EnrollmentRepositoryPort
 import com.gasfgrv.graphql.demo_graphql.domain.port.out.StudentRepositoryPort;
 import com.gasfgrv.graphql.demo_graphql.mock.DataMock;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 public class EnrollmentUsecaseTest {
 
     @Mock
@@ -39,7 +41,7 @@ public class EnrollmentUsecaseTest {
     private EnrollmentUsecase usecase;
 
     @Test
-    public void testFindAllEnrollments() {
+    public void testFindAllEnrollments(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
 
         when(enrollmentRepository.findAll()).thenReturn(List.of(enrollment));
@@ -50,11 +52,13 @@ public class EnrollmentUsecaseTest {
                 .hasSize(1)
                 .contains(enrollment);
 
+        assertThat(output.getOut()).contains("Usecase: finding all enrollments");
+
         verify(enrollmentRepository).findAll();
     }
 
     @Test
-    public void testFindEnrollmentById() {
+    public void testFindEnrollmentById(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
 
         when(enrollmentRepository.findById(enrollment.getId())).thenReturn(Optional.of(enrollment));
@@ -64,11 +68,13 @@ public class EnrollmentUsecaseTest {
         assertThat(result).isNotNull()
                 .isEqualTo(enrollment);
 
+        assertThat(output.getOut()).contains("Usecase: finding enrollment by ID: " + enrollment.getId());
+
         verify(enrollmentRepository).findById(enrollment.getId());
     }
 
     @Test
-    public void testFindEnrollmentByIdNotFound() {
+    public void testFindEnrollmentByIdNotFound(CapturedOutput output) {
         long enrollmentId = 1L;
 
         when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.empty());
@@ -77,11 +83,13 @@ public class EnrollmentUsecaseTest {
                 .isInstanceOf(EnrollmentNotFoundException.class)
                 .hasMessageContaining("Enrollment not found");
 
+        assertThat(output.getOut()).contains("Enrollment with ID " + enrollmentId + " not found");
+
         verify(enrollmentRepository).findById(enrollmentId);
     }
 
     @Test
-    public void testFindAllEnrollmentsByStudentsIds() {
+    public void testFindAllEnrollmentsByStudentsIds(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
 
         when(enrollmentRepository.findAllByStudentIds(List.of(enrollment.getStudent().getId())))
@@ -94,11 +102,13 @@ public class EnrollmentUsecaseTest {
                 .hasSize(1)
                 .contains(enrollment);
 
+        assertThat(output.getOut()).contains("Usecase: finding enrollments by student IDs: [" + enrollment.getStudent().getId() + "]");
+
         verify(enrollmentRepository).findAllByStudentIds(List.of(enrollment.getStudent().getId()));
     }
 
     @Test
-    public void testFindAllEnrollmentsByCourseIds() {
+    public void testFindAllEnrollmentsByCourseIds(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
 
         when(enrollmentRepository.findAllByCourseIds(List.of(enrollment.getCourse().getId())))
@@ -111,11 +121,13 @@ public class EnrollmentUsecaseTest {
                 .hasSize(1)
                 .contains(enrollment);
 
+        assertThat(output.getOut()).contains("Usecase: finding enrollments by course IDs: [" + enrollment.getCourse().getId() + "]");
+
         verify(enrollmentRepository).findAllByCourseIds(List.of(enrollment.getCourse().getId()));
     }
 
     @Test
-    public void testCreateEnrollment() {
+    public void testCreateEnrollment(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
 
         when(studentRepository.findById(enrollment.getStudent().getId()))
@@ -130,21 +142,26 @@ public class EnrollmentUsecaseTest {
         assertThat(result).isNotNull()
                 .isEqualTo(enrollment);
 
+        assertThat(output.getOut()).contains("Usecase: creating enrollment for student ID: " + enrollment.getStudent().getId() + " and course ID: " + enrollment.getCourse().getId());
+
         verify(studentRepository).findById(enrollment.getStudent().getId());
         verify(courseRepository).findById(enrollment.getCourse().getId());
         verify(enrollmentRepository).save(any(Enrollment.class));
     }
 
     @Test
-    public void testCreateEnrollmentStudentNotFound() {
+    public void testCreateEnrollmentStudentNotFound(CapturedOutput output) {
         long studentId = 1L;
         long courseId = 2L;
 
         when(studentRepository.findById(studentId)).thenReturn(Optional.empty());
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(DataMock.createCourseMock()));
 
         assertThatThrownBy(() -> usecase.createEnrollment(studentId, courseId))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Please provide a student for enrollment");
+
+        assertThat(output.getOut()).contains("Student with ID " + studentId + " not found while creating enrollment");
 
         verify(studentRepository).findById(studentId);
         verify(courseRepository).findById(courseId);
@@ -152,7 +169,7 @@ public class EnrollmentUsecaseTest {
     }
 
     @Test
-    public void testCreateEnrollmentCourseNotFound() {
+    public void testCreateEnrollmentCourseNotFound(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
 
         when(studentRepository.findById(enrollment.getStudent().getId()))
@@ -164,13 +181,15 @@ public class EnrollmentUsecaseTest {
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Please provide a course for enrollment");
 
+        assertThat(output.getOut()).contains("Course with ID " + enrollment.getCourse().getId() + " not found while creating enrollment");
+
         verify(studentRepository).findById(enrollment.getStudent().getId());
         verify(courseRepository).findById(enrollment.getCourse().getId());
         verify(enrollmentRepository, never()).save(any(Enrollment.class));
     }
 
     @Test
-    public void testUpdateEnrollment() {
+    public void testUpdateEnrollment(CapturedOutput output) {
         Enrollment enrollment = DataMock.createEnrollmentMock();
         int newProgress = 50;
 
@@ -182,17 +201,21 @@ public class EnrollmentUsecaseTest {
         assertThat(result).isNotNull()
                 .isEqualTo(enrollment);
 
+        assertThat(output.getOut()).contains("Usecase: updating enrollment progress for ID: " + enrollment.getId() + " to " + newProgress + "%");
+
         verify(enrollmentRepository).findById(enrollment.getId());
         verify(enrollmentRepository).save(any(Enrollment.class));
     }
 
     @Test
-    public void testUpdateEnrollmentNotFound() {
+    public void testUpdateEnrollmentNotFound(CapturedOutput output) {
         long enrollmentId = 1L;
         when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> usecase.updateEnrollment(enrollmentId, 50))
                 .isInstanceOf(EnrollmentNotFoundException.class);
+
+        assertThat(output.getOut()).contains("Enrollment with ID " + enrollmentId + " not found for update");
 
         verify(enrollmentRepository).findById(enrollmentId);
         verify(enrollmentRepository, never()).save(any(Enrollment.class));
