@@ -9,7 +9,9 @@ import com.gasfgrv.graphql.demo_graphql.domain.model.Student;
 import com.gasfgrv.graphql.demo_graphql.domain.port.out.StudentRepositoryPort;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class StudentRepository implements StudentRepositoryPort {
@@ -19,6 +21,7 @@ public class StudentRepository implements StudentRepositoryPort {
 
     @Override
     public List<Student> findAll() {
+        log.info("Finding all students");
         return jpaRepository.findAll()
                 .stream()
                 .map(mapper::toDomain)
@@ -27,6 +30,7 @@ public class StudentRepository implements StudentRepositoryPort {
 
     @Override
     public Optional<Student> findById(long id) {
+        log.info("Finding student by ID: {}", id);
         return jpaRepository
                 .findById(id)
                 .map(mapper::toDomain);
@@ -34,6 +38,7 @@ public class StudentRepository implements StudentRepositoryPort {
 
     @Override
     public List<Student> findAllByIds(List<Long> ids) {
+        log.info("Finding students by IDs: {}", ids);
         return jpaRepository.findAllById(ids)
                 .stream()
                 .map(mapper::toDomain)
@@ -42,15 +47,18 @@ public class StudentRepository implements StudentRepositoryPort {
 
     @Override
     public Student save(Student student) {
+        log.info("Saving student: {}", student);
         StudentEntity save = jpaRepository.save(mapper.toEntity(student));
         return mapper.toDomain(save);
     }
 
     @Override
     public boolean deleteById(long id) {
+        log.info("Deleting student by ID: {}", id);
         Optional<StudentEntity> student = jpaRepository.findById(id);
 
         if (student.isEmpty()) {
+            log.warn("Student with ID {} not found, cannot delete", id);
             return false;
         }
 

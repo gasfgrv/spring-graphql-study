@@ -16,7 +16,9 @@ import com.gasfgrv.graphql.demo_graphql.domain.port.in.EnrollmentUsecasePort;
 import com.gasfgrv.graphql.demo_graphql.domain.port.in.StudentUsecasePort;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class StudentResolver {
@@ -26,16 +28,19 @@ public class StudentResolver {
 
     @QueryMapping
     public List<Student> findAllStudents() {
+        log.info("GraphQL Query: findAllStudents");
         return studentUsecase.findAllStudents();
     }
 
     @QueryMapping
     public Student findStudentById(@Argument Long id) {
+        log.info("GraphQL Query: findStudentById with ID: {}", id);
         return studentUsecase.findStudentById(id).get();
     }
 
     @BatchMapping(field = "enrollments", typeName = "Student")
     public Map<Student, List<Enrollment>> enrollments(List<Student> students) {
+        log.info("GraphQL BatchMapping: enrollments for {} students", students.size());
         List<Long> studentIds = students.stream()
                 .map(Student::getId)
                 .toList();
@@ -53,16 +58,19 @@ public class StudentResolver {
 
     @MutationMapping
     public Student createStudent(@Argument String name, @Argument String email) {
+        log.info("GraphQL Mutation: createStudent with name: {}", name);
         return studentUsecase.createStudent(name, email);
     }
 
     @MutationMapping
     public Student updateStudent(@Argument Long id, @Argument String name, @Argument String email) {
+        log.info("GraphQL Mutation: updateStudent with ID: {}", id);
         return studentUsecase.updateStudent(id, name, email);
     }
 
     @MutationMapping
     public boolean deleteStudent(@Argument Long id) {
+        log.info("GraphQL Mutation: deleteStudent with ID: {}", id);
         return studentUsecase.deleteStudent(id);
     }
 
